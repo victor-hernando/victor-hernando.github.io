@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>My Game (Unity WebGL)</title>
+	<style>
+		html,body{height:100%;margin:0;background:#0b0b0b;font-family:system-ui,Segoe UI,Roboto,sans-serif;color:#fff}
+		#unity-container{width:100%;height:100%;position:relative;display:flex;flex-direction:column}
+		#unity-canvas{width:100%;height:100%;background:#111}
+		#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0b0b0b}
+		.progress{width:60%;max-width:600px;height:12px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;margin-top:12px}
+		.progress>i{display:block;height:100%;width:0%;background:#09f;transition:width 0.3s ease}
+		#status{margin-top:8px;font-size:13px;opacity:0.8}
+		button{appearance:none;border:0;background:rgba(255,255,255,0.08);color:#fff;padding:8px 14px;margin:8px;border-radius:6px;cursor:pointer}
+	</style>
+</head>
+<body>
+	<div id="unity-container">
+		<canvas id="unity-canvas"></canvas>
+		<div id="overlay">
+			<div id="logo">Cargando My Game...</div>
+			<div class="progress"><i id="bar"></i></div>
+			<div id="status">0%</div>
+		</div>
+		<div style="position:absolute;top:10px;right:10px;">
+			<button id="btn-fullscreen">Pantalla completa</button>
+			<button id="btn-reload">Recargar</button>
+		</div>
+	</div>
+
+	<script src="Build/mygame.loader.js"></script>
+	<script>
+		const container = document.querySelector("#unity-container");
+		const canvas = document.querySelector("#unity-canvas");
+		const overlay = document.querySelector("#overlay");
+		const bar = document.querySelector("#bar");
+		const status = document.querySelector("#status");
+
+		// Configuración de la build
+		const buildUrl = "Build";
+		const config = {
+			dataUrl: buildUrl + "/mygame.data",
+			frameworkUrl: buildUrl + "/mygame.framework.js",
+			codeUrl: buildUrl + "/mygame.wasm",
+			streamingAssetsUrl: "StreamingAssets",
+			companyName: "MyCompany",
+			productName: "MyGame",
+			productVersion: "1.0"
+		};
+
+		createUnityInstance(canvas, config, progress => {
+			bar.style.width = (progress * 100) + "%";
+			status.textContent = Math.floor(progress * 100) + "%";
+		}).then(instance => {
+			window.unityInstance = instance;
+			overlay.style.display = "none";
+		}).catch(message => {
+			alert("Error al cargar la build:\n" + message);
+		});
+
+		document.querySelector("#btn-fullscreen").addEventListener("click", () => {
+			window.unityInstance?.SetFullscreen(1);
+		});
+
+		document.querySelector("#btn-reload").addEventListener("click", () => {
+			location.reload();
+		});
+	</script>
+</body>
+</html>
