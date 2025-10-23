@@ -40,20 +40,16 @@
 		
 		const box = document.getElementById('box');
 		const btn = document.getElementById('btn');
-		const colorRef = db.ref('sharedColor');
-	
-		// Escucha cambios globales
-		colorRef.on('value', snap => {
-			const color = snap.val() || 'red';
+		const colorRef = ref(db, 'sharedColor');
+
+		onValue(colorRef, (snapshot) => {
+			const color = snapshot.val() || 'red';
 			box.style.background = color;
 		});
-	
-		// Envía cambio al pulsar
+
 		btn.addEventListener('click', () => {
 			const newColor = box.style.background === 'red' ? 'blue' : 'red';
-			colorRef.set(newColor);
-		});
-	</script>
-	
+			set(colorRef, newColor);
+		});	
  	</body>
 </html>
