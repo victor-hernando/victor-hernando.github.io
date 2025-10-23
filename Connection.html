@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Connection text</title>
+	</head>
+	<body>
+  
+	<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js"></script>
+	<script>
+		const firebaseConfig = {
+			apiKey: "AIzaSyAWAEJahdFnVkQQk7whGWbGru3lus_f4sE",
+			authDomain: "test1-df122.firebaseapp.com",
+			databaseURL: "https://test1-df122-default-rtdb.europe-west1.firebasedatabase.app",
+			projectId: "test1-df122",
+			storageBucket: "test1-df122.firebasestorage.app",
+			messagingSenderId: "745442720279",
+			appId: "1:745442720279:web:43eff7bb8a3a4abd357a52",
+			measurementId: "G-ZJ8TSC1WJ4"
+		};
+		firebase.initializeApp(firebaseConfig);
+		const db = firebase.database();
+	</script>
+  
+    <h1>Hola Mundo!</h1>
+    <p>Welcome to my 2nd GitHub Page!</p>
+	
+	<div id="box" style="width:150px;height:150px;background:red;margin:20px auto;"></div>
+	<button id="btn">Cambiar color</button>
+
+	<script>
+	const box = document.getElementById('box');
+	const btn = document.getElementById('btn');
+	const colorRef = db.ref('sharedColor');
+	
+	// Escucha cambios globales
+	colorRef.on('value', snap => {
+		const color = snap.val() || 'red';
+		box.style.background = color;
+	});
+	
+	// Envía cambio al pulsar
+	btn.addEventListener('click', () => {
+		const newColor = box.style.background === 'red' ? 'blue' : 'red';
+		colorRef.set(newColor);
+	});
+	</script>
+	
+  </body>
+</html>
