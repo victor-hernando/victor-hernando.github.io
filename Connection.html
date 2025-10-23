@@ -35,7 +35,7 @@
   		// Initialize Firebase
   		const app = initializeApp(firebaseConfig);
   		const analytics = getAnalytics(app);
-		const db = app.database();
+		const db = getDatabase(app);
 		
 		const box = document.getElementById('box');
 		const btn = document.getElementById('btn');
