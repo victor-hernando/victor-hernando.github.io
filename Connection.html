@@ -5,21 +5,29 @@
 	</head>
 	<body>
   
-	<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js"></script>
-	<script>
-		const firebaseConfig = {
-			apiKey: "AIzaSyAWAEJahdFnVkQQk7whGWbGru3lus_f4sE",
-			authDomain: "test1-df122.firebaseapp.com",
-			databaseURL: "https://test1-df122-default-rtdb.europe-west1.firebasedatabase.app",
-			projectId: "test1-df122",
-			storageBucket: "test1-df122.firebasestorage.app",
-			messagingSenderId: "745442720279",
-			appId: "1:745442720279:web:43eff7bb8a3a4abd357a52",
-			measurementId: "G-ZJ8TSC1WJ4"
-		};
-		firebase.initializeApp(firebaseConfig);
-		const db = firebase.database();
+	<script type="module">
+  		// Import the functions you need from the SDKs you need
+  		import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  		import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+  		// TODO: Add SDKs for Firebase products that you want to use
+	  	// https://firebase.google.com/docs/web/setup#available-libraries
+
+  		// Your web app's Firebase configuration
+  		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  		const firebaseConfig = {
+    		apiKey: "AIzaSyAWAEJahdFnVkQQk7whGWbGru3lus_f4sE",
+    		authDomain: "test1-df122.firebaseapp.com",
+    		databaseURL: "https://test1-df122-default-rtdb.europe-west1.firebasedatabase.app",
+    		projectId: "test1-df122",
+    		storageBucket: "test1-df122.firebasestorage.app",
+    		messagingSenderId: "745442720279",
+    		appId: "1:745442720279:web:43eff7bb8a3a4abd357a52",
+    		measurementId: "G-ZJ8TSC1WJ4"
+  		};
+
+  		// Initialize Firebase
+  		const app = initializeApp(firebaseConfig);
+  		const analytics = getAnalytics(app);
 	</script>
   
     <h1>Hola Mundo!</h1>
