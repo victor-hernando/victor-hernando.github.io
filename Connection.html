@@ -58,19 +58,22 @@
 			onValue(txtRef, (snapshot) => {
 				const text = snapshot.val();
 				//txtRefField.value = text;
-				//NameTxtField.value=text.name;
-				//AgeTxtField.value=text.age;
+				
+				console.log("Info changed");
+				console.log("User's name; "+text.value);
+				console.log("User's age; "+text.value);
+
+				NameTxtField.value=text.name;
+				AgeTxtField.value=text.age;
 			});
 
 			btn.addEventListener('click', () => {
 				const newColor = box.style.background === 'red' ? 'blue' : 'red';
 				set(colorRef, newColor);
 				
-				console.log(NameTxtField.value);
-				console.log(AgeTxtField.value);
 				var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
 				console.log(userInfo);
-				//set(txtRef, userInfo);
+				set(txtRef, userInfo);
 			});
 		</script>
  	</body>
