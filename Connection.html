@@ -58,8 +58,8 @@
 			onValue(txtRef, (snapshot) => {
 				const text = snapshot.val();
 				//txtRefField.value = text;
-				NameTxtField.value=text.name;
-				AgeTxtField.value=text.age;
+				//NameTxtField.value=text.name;
+				//AgeTxtField.value=text.age;
 			});
 
 			btn.addEventListener('click', () => {
@@ -67,7 +67,8 @@
 				set(colorRef, newColor);
 				
 				var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
-				set(txtRef, userInfo);
+				console.log(userInfo);
+				//set(txtRef, userInfo);
 			});
 		</script>
  	</body>
