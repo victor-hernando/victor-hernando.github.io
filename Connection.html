@@ -8,7 +8,8 @@
     	<p>Welcome to my 2nd GitHub Page!</p>
 
 		<div id="box" style="width:150px;height:150px;background:red;margin:20px auto;"></div>
-		<input type="text"	id="text" name="name" required minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto"/>
+		<input type="text"	id="NameText" name="name" required minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto"/>
+		<input type="text"	id="Agetext" name="name" required minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto"/>
 		<button id="btn">Cambiar color</button>
 
 
@@ -37,27 +38,36 @@
   			const app = initializeApp(firebaseConfig);
   			const analytics = getAnalytics(app);
 			const db = getDatabase(app);
+			
+			const colorRef = ref(db, 'sharedColor');
+			const txtRef = ref(db, 'sharedText');
 
 			const box = document.getElementById('box');
-			const btn = document.getElementById('btn');
-			const txtField = document.getElementById('text');
-			const colorRef = ref(db, 'sharedColor');
-			const txt = ref(db, 'sharedText');
+			const btn = document.getElementById('btn');			
+			const NameTxtField = document.getElementById('NameText');
+			const AgeTxtField = document.getElementById('AgeText');			
+			
+			
+			
 
 			onValue(colorRef, (snapshot) => {
 				const color = snapshot.val() || 'red';
 				box.style.background = color;
 			});
 
-			onValue(txt, (snapshot) => {
+			onValue(txtRef, (snapshot) => {
 				const text = snapshot.val();
-				txtField.value = text;
+				//txtRefField.value = text;
+				NameTxtField.value=text.name;
+				AgeTxtField.value=text.age;
 			});
 
 			btn.addEventListener('click', () => {
 				const newColor = box.style.background === 'red' ? 'blue' : 'red';
-				set(txt, txtField.value);
 				set(colorRef, newColor);
+				
+				var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
+				set(txtRef, userInfo);
 			});
 		</script>
  	</body>
