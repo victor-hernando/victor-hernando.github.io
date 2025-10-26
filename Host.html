@@ -26,16 +26,26 @@
 		<div style="position:absolute;top:10px;right:10px;">
 			<button id="btn-fullscreen">Pantalla completa</button>
 			<button id="btn-reload">Recargar</button>
+			<button id="sizeButton">Aplicar Cambios</button>
+			<p id="sizeText">Tamaño: 0</p>
 		</div>
 	</div>
 
 	<script src="Build/webGLTest.loader.js"></script>
 	<script>
+		window.function OnUnitySendSize(size) {
+			console.log("Tamaño desde Unity:", score);
+			pannelSize+=size;
+			document.getElementById('sizeText').innerText = "Tamaño: "+pannelSize;
+		}
+
 		const container = document.querySelector("#unity-container");
 		const canvas = document.querySelector("#unity-canvas");
 		const overlay = document.querySelector("#overlay");
 		const bar = document.querySelector("#bar");
 		const status = document.querySelector("#status");
+		
+		var pannelSize=0;
 
 		// Configuración de la build
 		const buildUrl = "Build";
@@ -55,6 +65,16 @@
 		}).then(instance => {
 			window.unityInstance = instance;
 			overlay.style.display = "none";
+			
+			// Aquí empieza tu código personalizado
+			function sendToUnity(size) {
+				unityInstance.SendMessage('ResponsivePannel', 'ChangeSize', size);
+			}
+	
+	
+			document.getElementById('sizeButton').addEventListener('click', () => {
+				sendToUnity(pannelSize);
+			});
 		}).catch(message => {
 			alert("Error al cargar la build:\n" + message);
 		});
