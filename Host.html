@@ -33,7 +33,7 @@
 
 	<script src="Build/webGLTest.loader.js"></script>
 	<script>
-		window.function OnUnitySendSize(size) {
+		window.OnUnitySendSize = function(size) {
 			console.log("Tamaño desde Unity:", score);
 			pannelSize+=size;
 			document.getElementById('sizeText').innerText = "Tamaño: "+pannelSize;
