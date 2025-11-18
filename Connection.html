@@ -1,19 +1,22 @@
- <!DOCTYPE html>
 <html>
 	<head>
 		<title>Big Black Dictionary</title>
 		<link rel="icon" href="ph.png" type="image/png">
+		<!--link rel="icon" href="ph.png" type="image/png"-->
+		<script src="https://www.googletagmanager.com/gtag/js?l=dataLayer&amp;id=G-ZJ8TSC1WJ4" async=""></script>
 	</head>
 	<body>
     	<h1>Hola Mundo!</h1>
     	<p>Welcome to my 2nd GitHub Page!</p>
 
-		<div id="box" style="width:150px;height:150px;background:red;margin:20px auto;"></div>
-		<div id="container">
-			<input type="text"	id="NameText" name="name" required minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto"/>
+		<div id="box" style="width: 150px; height: 150px; background: blue; margin: 20px auto;"></div>
+		<!--div id="container">
+			<input type="text" id="NameText" name="name" required="" minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto">
 			<textarea id="AgeText" name="age" style="width:550px;height:150px; auto"></textarea>
-		</div>
+		</div-->
+		<button id="addTextareaBtn">Añadir textarea</button>
 		<button id="btn">Cambiar color</button>
+		<div id="textareaContainer"></div>
 
 
 		<script type="module">
@@ -50,8 +53,23 @@
 			const NameTxtField = document.getElementById('NameText');
 			const AgeTxtField = document.getElementById('AgeText');			
 			
-			
-			
+			function addTextarea()
+			{
+				const l_container = document.getElementById("textareaContainer");
+		
+				// Crear el textarea
+				const l_textarea = document.createElement("input");
+				l_textarea.rows = 3;
+				l_textarea.cols = 40;
+				l_textarea.placeholder = "Escribe algo...";
+		
+				// Lo añadimos al contenedor
+				l_container.appendChild(l_textarea);
+		
+				// Añadir una línea de separación opcional
+				const l_br = document.createElement("br");
+				l_container.appendChild(l_br);
+			}
 
 			onValue(colorRef, (snapshot) => {
 				const color = snapshot.val() || 'red';
@@ -70,6 +88,8 @@
 				AgeTxtField.value=text.age;
 			});
 
+			addTextareaBtn.addEventListener('click', () => {addTextarea();});
+			
 			btn.addEventListener('click', () => {
 				const newColor = box.style.background === 'red' ? 'blue' : 'red';
 				set(colorRef, newColor);
