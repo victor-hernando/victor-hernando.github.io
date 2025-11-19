@@ -88,11 +88,11 @@
 					this.parentElement.remove();
 				};
 
-				l_container.appendChild(l_clone);
-				
 				// Añadir una línea de separación opcional
 				const l_br = document.createElement("br");
+				
 				l_container.appendChild(l_br);
+				l_container.appendChild(l_clone);				
 			}
 
 			onValue(colorRef, (snapshot) => {
