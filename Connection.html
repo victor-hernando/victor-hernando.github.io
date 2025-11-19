@@ -6,7 +6,7 @@
 		<script src="https://www.googletagmanager.com/gtag/js?l=dataLayer&amp;id=G-ZJ8TSC1WJ4" async=""></script>
 	</head>
 	<style>
-		#entry_container
+		.entry_container
 		{
 			display: flex;
     		flex-wrap: nowrap;
@@ -33,11 +33,9 @@
 		<div id="textareaContainer"></div>
 
 		<template id="textareaTemplate">
-			<!--div style="display: flex; outline-style: solid; background-color: beige; outline-width: 3px; "-->
 			<div class="entry_container">
-				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: absolute"></input>
-				<!--textarea id="content" rows="3" cols="40" placeholder = "Escribe algo..." style="position: absolute"></textarea-->
-				<textarea id="content" placeholder = "Escribe algo..." style="position: absolute; top: -15%; height: 50px;"></textarea>
+				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
+				<textarea id="content" placeholder = "Escribe algo..." style="position: relative; top: -15%; height: 50px;"></textarea>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
