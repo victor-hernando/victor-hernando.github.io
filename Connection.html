@@ -54,9 +54,9 @@
     	  const NameTxtField = document.getElementById('NameText');
     	  const AgeTxtField = document.getElementById('AgeText');
 
-    	  function spawnPrefab(prefabName)
+    	  function spawnPrefab()
     	  {
-    	      const l_template = document.getElementById(prefabName);
+    	      const l_template = document.getElementById("registryTemplate");
     	      const l_clone = l_template.content.cloneNode(true); // copia profunda
     	      const l_container = document.getElementById("textareaContainer");
 
@@ -92,7 +92,7 @@
     	      //AgeTxtField.value=text.age;
     	  });
 
-    	  addTextareaBtn.addEventListener('click', () => {spawnPrefab("registryTemplate");});
+    	  addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
 
     	  btn.addEventListener('click', () => {
     	      const newColor = box.style.background === 'red' ? 'blue' : 'red';
