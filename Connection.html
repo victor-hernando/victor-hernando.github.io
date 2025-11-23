@@ -92,7 +92,7 @@
     	      //AgeTxtField.value=text.age;
     	  });
 
-    	  addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
+    	  //addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
 
     	  btn.addEventListener('click', () => {
     	      const newColor = box.style.background === 'red' ? 'blue' : 'red';
@@ -113,7 +113,7 @@
 			<textarea id="AgeText" name="age" style="width:550px;height:150px; auto"></textarea>
 		</div-->
 		<button id="addTextareaBtn">Añadir textarea</button>
-		<button id="btn">Cambiar color</button>
+		<button id="btn" onclick="spawnPrefab()">Cambiar color</button>
 		<div id="textareaContainer"></div>
 
 		<template id="registryTemplate">
