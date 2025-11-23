@@ -6,7 +6,7 @@
 		<script src="https://www.googletagmanager.com/gtag/js?l=dataLayer&amp;id=G-ZJ8TSC1WJ4" async=""></script>
 	</head>
 	<style>
-		.entry_container
+		.regisrty_container
 		{
 			display: flex;
     		flex-wrap: nowrap;
@@ -32,10 +32,16 @@
 		<button id="btn">Cambiar color</button>
 		<div id="textareaContainer"></div>
 
-		<template id="textareaTemplate">
-			<div class="entry_container">
+		<template id="registryTemplate">
+			<div class="regisrty_container">
 				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
-				<textarea id="content" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px);"></textarea>
+				<button class="addBtn" onClick=spawnPrefab("textareaTemplate")>Añadir Entrada</button>
+				<button class="removeBtn">Eliminar</button>
+			</div>
+		</template>
+		<template id="textareaTemplate">
+			<div class="textArea_container">
+				<textarea id="textContent" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px);"></textarea>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
@@ -74,9 +80,9 @@
 			const NameTxtField = document.getElementById('NameText');
 			const AgeTxtField = document.getElementById('AgeText');			
 			
-			function spawnPrefab()
+			function spawnPrefab(prefabName)
 			{
-				const l_template = document.getElementById("textareaTemplate");
+				const l_template = document.getElementById(prefabName);
 				const l_clone = l_template.content.cloneNode(true); // copia profunda
 				const l_container = document.getElementById("textareaContainer");
 
@@ -112,7 +118,7 @@
 				//AgeTxtField.value=text.age;
 			});
 
-			addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
+			addTextareaBtn.addEventListener('click', () => {spawnPrefab("registryTemplate");});
 			
 			btn.addEventListener('click', () => {
 				const newColor = box.style.background === 'red' ? 'blue' : 'red';
