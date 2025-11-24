@@ -88,6 +88,7 @@
 				const l_template = document.getElementById(template);
 				const l_clone = l_template.content.cloneNode(true); // copia profunda
 				const l_container = containerClose.closest(containerName);
+				
 				console.log("container "+l_container);
 				//const l_container = document.getElementById(container);
 
@@ -116,14 +117,14 @@
 			<input type="text" id="NameText" name="name" required="" minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto">
 			<textarea id="AgeText" name="age" style="width:550px;height:150px; auto"></textarea>
 		</div-->
-		<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this, '.container')">Añadir textarea</button>
+		<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this,'.container')">Añadir textarea</button>
 		<button id="btn" >Cambiar color</button>
 		<div id="textareaContainer" class="container"></div>
 
 		<template id="registryTemplate">
 			<div id="registryContainer" class="registry_container">
 				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
-				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this, '.textArea_container')">Añadir Entrada</button>
+				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this, '.registry_container')">Añadir Entrada</button>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
