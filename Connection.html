@@ -87,7 +87,7 @@
 			{
 				const l_template = document.getElementById(template);
 				const l_clone = l_template.content.cloneNode(true); // copia profunda
-				const l_container = containerClose.closest(containerName);
+				const l_container = containerClose.closest(".container");
 				
 				console.log("Reference: "+containerClose+" container "+l_container+" name "+containerName);
 				//const l_container = document.getElementById(container);
