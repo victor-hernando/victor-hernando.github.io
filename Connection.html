@@ -83,13 +83,13 @@
 			});
 		</script>
 		<script>
-			function spawnPrefab(template, containerClose, containerName)
+			function spawnPrefab(template, containerClose)
 			{
 				const l_template = document.getElementById(template);
 				const l_clone = l_template.content.cloneNode(true); // copia profunda
-				const l_container = containerClose.closest(".container");
+				const l_container = containerClose.parentElement;
 				
-				console.log("Reference: "+containerClose+" container "+l_container+" name "+containerName);
+				console.log("Reference: "+containerClose+" container "+l_container);
 				//const l_container = document.getElementById(container);
 
 				// Buscar botón eliminar dentro del clon
@@ -117,14 +117,15 @@
 			<input type="text" id="NameText" name="name" required="" minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto">
 			<textarea id="AgeText" name="age" style="width:550px;height:150px; auto"></textarea>
 		</div-->
-		<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this,'.container')">Añadir textarea</button>
-		<button id="btn" >Cambiar color</button>
-		<div id="textareaContainer" class="container"></div>
+		<div id="textareaContainer" class="container">
+			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this)">Añadir textarea</button>
+			<button id="btn" >Cambiar color</button>
+		</div>
 
 		<template id="registryTemplate">
 			<div id="registryContainer" class="registry_container">
 				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
-				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this, '.registry_container')">Añadir Entrada</button>
+				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this)">Añadir Entrada</button>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
