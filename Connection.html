@@ -6,7 +6,7 @@
 		<script src="https://www.googletagmanager.com/gtag/js?l=dataLayer&amp;id=G-ZJ8TSC1WJ4" async=""></script>
 	</head>
 	<style>
-		.registryContainer
+		.registry_container
 		{
 			display: flex;
     		flex-wrap: nowrap;
@@ -92,16 +92,17 @@
 				console.log("Reference: "+containerClose+" container "+l_container);
 				//const l_container = document.getElementById(container);
 
+				// Añadir una línea de separación opcional
+				const l_br = document.createElement("br");
+
 				// Buscar botón eliminar dentro del clon
 				const l_removeBtn = l_clone.querySelector(".removeBtn");
 				l_removeBtn.onclick = function()
 				{
 					// El padre del botón es el elemento entero
 					this.parentElement.remove();
+					l_br.remove();
 				};
-
-				// Añadir una línea de separación opcional
-				const l_br = document.createElement("br");
 
 				l_container.appendChild(l_br);
 				l_container.appendChild(l_clone);
