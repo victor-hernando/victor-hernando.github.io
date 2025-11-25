@@ -52,13 +52,14 @@
 			const btn = document.getElementById('btn');
 
 
-            const referencia = ref(db, "/info/idea 1/texts/0");
+            const referencia = ref(db, "info/idea 1/texts/0");
             const snapshot = await get(referencia);
 
             
 		
 
-			onValue(infoRef, (snapshot) => {
+			/*
+            onValue(infoRef, (snapshot) => {
 				const l_info = snapshot.val() || "null";
                 if(l_info!="null")
                 {
@@ -68,6 +69,7 @@
                     l_registry.children[0].value=infoRef.name;
                 }
 			});
+            */
 
 
 			btn.addEventListener('click', () => {
