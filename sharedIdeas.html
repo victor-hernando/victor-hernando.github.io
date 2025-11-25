@@ -50,6 +50,12 @@
 
 			const box = document.getElementById('box');
 			const btn = document.getElementById('btn');
+
+
+            const referencia = ref(db, "/info/idea 1/texts/0");
+            const snapshot = await get(referencia);
+
+            
 		
 
 			onValue(infoRef, (snapshot) => {
@@ -65,7 +71,14 @@
 
 
 			btn.addEventListener('click', () => {
-				
+				if (snapshot.exists())
+                {
+                    console.log("Valor:", snapshot.val());
+                }
+                else
+                {
+                    console.log("No existe ese dato");
+                }   
 			});
 
 		</script>
