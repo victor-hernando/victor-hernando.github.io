@@ -52,8 +52,8 @@
 			const btn = document.getElementById('btn');
 
 
-            const referencia = ref(db, "info/idea 1/texts/0");
-            const snapshot = await get(referencia);
+            let referencia = ref(db, "info/idea 1/texts/0");
+            let snapshot = await get(referencia);
 			
             if (snapshot.exists())
             {
