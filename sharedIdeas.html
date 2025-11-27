@@ -165,9 +165,10 @@
 						const l_idea = l_info[l_key];
 						console.log("ID:", l_key);
 						console.log("Nombre:", l_idea.name);
-					
+						
                     	var l_parent=document.getElementById("addTextareaBtn");
 						var l_registry=spawnPrefab('registryTemplate',l_parent);
+						console.log("registry: "+l_registry);
 						l_registry.children[0].value=l_idea.name;
 
 						console.log("Texts:");
