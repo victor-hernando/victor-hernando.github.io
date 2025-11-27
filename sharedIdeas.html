@@ -93,16 +93,35 @@
 
 
 			btn.addEventListener('click', () => {
+
 				if (snapshot.exists())
-                {
-                    console.log("Valor:", snapshot.val());
-                    console.log("Valor info:", snapshot.val().info1);
-                    console.log("Valor name:", snapshot.val().info1.name);
-                }
-                else
-                {
-                    console.log("No existe ese dato");
-                }   
+				{
+					const l_info = snapshot.val();
+				
+					for (const l_key in l_info)
+					{
+						const l_idea = l_info[l_key];
+						console.log("ID:", l_key);
+						console.log("Nombre:", l_idea.name);
+					
+						console.log("Texts:");
+						for (const l_textKey in l_idea.texts)
+						{
+							console.log("  -", l_idea.texts[l_textKey]);
+						}
+					}
+				}
+
+				//if (snapshot.exists())
+                //{
+                //    console.log("Valor:", snapshot.val());
+                //    console.log("Valor info:", snapshot.val().info1);
+                //    console.log("Valor name:", snapshot.val().info1.name);
+                //}
+                //else
+                //{
+                //    console.log("No existe ese dato");
+                //}   
 			});
 
 		</script>
