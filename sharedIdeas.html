@@ -117,12 +117,13 @@
 				if (snapshot.exists())
                 {
                     console.log("Valor:", snapshot.val());
-                    console.log("Valor info:", snapshot.val()["idea1"]);
-                    console.log("Valor name:", snapshot.val()["idea1"]["name"]);					
+                    console.log("Valor idea1:", snapshot.val()["idea1"]);
+                    console.log("Valor idea1 name:", snapshot.val()["idea1"]["name"]);
+                    console.log("Valor idea1 length:", snapshot.val()["idea1"]["texts"].length);
+                    console.log("Valor idea1 1st text:", snapshot.val()["idea1"]["texts"][1]);
                     console.log(" ");
-                    console.log("Valor:", snapshot.val());
-                    console.log("Valor info:", snapshot.val()["idea 1"]);
-                    console.log("Valor name:", snapshot.val()["idea 1"]["name"]);
+                    console.log("Valor idea 1:", snapshot.val()["idea 1"]);
+                    console.log("Valor idea 1 name:", snapshot.val()["idea 1"]["name"]);
                 }
                 else
                 {
