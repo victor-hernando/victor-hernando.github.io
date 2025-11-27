@@ -96,6 +96,8 @@
 				if (snapshot.exists())
                 {
                     console.log("Valor:", snapshot.val());
+                    console.log("Valor:", snapshot.val()[1]);
+                    console.log("Valor:", snapshot.val()[1].name);
                 }
                 else
                 {
@@ -134,9 +136,12 @@
 			//addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
 		</script>
 
-    	<h1>Hola Mundo!</h1>
-    	<p>Welcome to my 2nd GitHub Page!</p>
+    	<!--h1>Hola Mundo!</h1>
+    	<p>Welcome to my 2nd GitHub Page!</p-->
 
+		<div id="br"></div>
+		<div id="btr"></div>
+		<div id="brd"></div>
 		<div id="textareaContainer" class="container">
 			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this)">Añadir textarea</button>
 			<button id="btn" >Get Info</button>
