@@ -94,23 +94,25 @@
 
 			btn.addEventListener('click', () => {
 
-				//if (snapshot.exists())
-				//{
-				//	const l_info = snapshot.val();
-				//
-				//	for (const l_key in l_info)
-				//	{
-				//		const l_idea = l_info[l_key];
-				//		console.log("ID:", l_key);
-				//		console.log("Nombre:", l_idea.name);
-				//	
-				//		console.log("Texts:");
-				//		for (const l_textKey in l_idea.texts)
-				//		{
-				//			console.log("  -", l_idea.texts[l_textKey]);
-				//		}
-				//	}
-				//}
+				if (snapshot.exists())
+				{
+					const l_info = snapshot.val();
+				
+					for (const l_key in l_info)
+					{
+						const l_idea = l_info[l_key];
+						console.log("ID:", l_key);
+						console.log("Nombre:", l_idea.name);
+					
+						console.log("Texts:");
+						for (const l_textKey in l_idea.texts)
+						{
+							console.log("\t\t-", l_idea.texts[l_textKey]);
+						}
+					}
+				}
+				
+				console.log("New info");
 
 				if (snapshot.exists())
                 {
