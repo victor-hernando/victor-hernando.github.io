@@ -20,6 +20,35 @@
 		}
 	</style>
 	<body>
+		<script>
+			function spawnPrefab(template, containerClose)
+			{
+				const l_template = document.getElementById(template);
+				const l_clone = l_template.content.cloneNode(true); // copia profunda
+				const l_container = containerClose.parentElement;
+				
+				console.log("Reference: "+containerClose+" container "+l_container);
+				//const l_container = document.getElementById(container);
+
+				// Añadir una línea de separación opcional
+				const l_br = document.createElement("br");
+
+				// Buscar botón eliminar dentro del clon
+				const l_removeBtn = l_clone.querySelector(".removeBtn");
+				l_removeBtn.onclick = function()
+				{
+					// El padre del botón es el elemento entero
+					this.parentElement.remove();
+					l_br.remove();
+				};
+
+				l_container.appendChild(l_br);
+				l_container.appendChild(l_clone);
+
+				return l_clone;
+			}
+			//addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
+		</script>
 		<script type="module">
 			// Import the functions you need from the SDKs you need
     	    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
@@ -94,6 +123,7 @@
 
 			btn.addEventListener('click', () => {
 
+				/*
 				if (snapshot.exists())
 				{
 					const l_info = snapshot.val();
@@ -125,41 +155,37 @@
                     console.log("Valor idea 1:", snapshot.val()["idea 1"]);
                     console.log("Valor idea 1 name:", snapshot.val()["idea 1"]["name"]);
                 }
+				*/
+				if(snapshot.exists())
+				{
+					const l_info = snapshot.val();
+				
+					for (const l_key in l_info)
+					{
+						const l_idea = l_info[l_key];
+						console.log("ID:", l_key);
+						console.log("Nombre:", l_idea.name);
+					
+                    	var l_parent=element.getElementById("addTextareaBtn");
+						var l_registry=spawnPrefab('registryTemplate',l_parent);
+						l_registry.children[0].value=l_idea.name;
+
+						console.log("Texts:");
+						for (const l_textKey in l_idea.texts)
+						{
+							console.log("\t\t-", l_idea.texts[l_textKey]);
+							
+							var l_entry=spawnPrefab('textareaTemplate',l_registry.children[0]);
+							l_entry.children[0].value=l_idea.texts[l_textKey];
+						}
+					}
+				}
                 else
                 {
                     console.log("No existe ese dato");
                 }   
 			});
 
-		</script>
-		<script>
-			function spawnPrefab(template, containerClose)
-			{
-				const l_template = document.getElementById(template);
-				const l_clone = l_template.content.cloneNode(true); // copia profunda
-				const l_container = containerClose.parentElement;
-				
-				console.log("Reference: "+containerClose+" container "+l_container);
-				//const l_container = document.getElementById(container);
-
-				// Añadir una línea de separación opcional
-				const l_br = document.createElement("br");
-
-				// Buscar botón eliminar dentro del clon
-				const l_removeBtn = l_clone.querySelector(".removeBtn");
-				l_removeBtn.onclick = function()
-				{
-					// El padre del botón es el elemento entero
-					this.parentElement.remove();
-					l_br.remove();
-				};
-
-				l_container.appendChild(l_br);
-				l_container.appendChild(l_clone);
-
-                return l_clone;
-			}
-			//addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
 		</script>
 
     	<!--h1>Hola Mundo!</h1>
