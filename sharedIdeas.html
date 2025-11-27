@@ -168,16 +168,16 @@
 						
                     	var l_parent=document.getElementById("addTextareaBtn");
 						var l_registry=spawnPrefab('registryTemplate',l_parent);
-						console.log("registry: "+l_registry);
-						l_registry.children[0].value=l_idea.name;
+						//console.log("registry: "+l_registry);
+						//l_registry.children[0].value=l_idea.name;
 
 						console.log("Texts:");
 						for (const l_textKey in l_idea.texts)
 						{
 							console.log("\t\t-", l_idea.texts[l_textKey]);
 							
-							var l_entry=spawnPrefab('textareaTemplate',l_registry.children[0]);
-							l_entry.children[0].value=l_idea.texts[l_textKey];
+							var l_entry=spawnPrefab('textareaTemplate',l_registry, true);
+							//l_entry.children[0].value=l_idea.texts[l_textKey];
 						}
 					}
 				}
