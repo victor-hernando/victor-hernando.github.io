@@ -29,6 +29,8 @@
 				if(useParent)
 					l_container=containerClose.parentElement;
 				
+				const l_root = l_clone.children[0];
+
 				console.log("Reference: "+containerClose+" container "+l_container);
 				//const l_container = document.getElementById(container);
 
@@ -47,7 +49,7 @@
 				l_container.appendChild(l_br);
 				l_container.appendChild(l_clone);
 
-				return l_clone;
+				return l_root;
 			}
 			//addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
 		</script>
@@ -158,6 +160,8 @@
                     console.log("Valor idea 1 name:", snapshot.val()["idea 1"]["name"]);
                 }
 				*/
+
+				//Rellenado de prefabs segun info
 				if(snapshot.exists())
 				{
 					const l_info = snapshot.val();
