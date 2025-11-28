@@ -175,7 +175,7 @@
                     	var l_parent=document.getElementById("addTextareaBtn");
 						var l_registry=spawnPrefab('registryTemplate',l_parent, true);
 						console.log("registry: "+l_registry);
-						//l_registry.children[0].value=l_idea.name;
+						l_registry.children[0].value=l_idea.name;
 
 						console.log("Texts:");
 						for (const l_textKey in l_idea.texts)
@@ -183,7 +183,7 @@
 							console.log("\t\t-", l_idea.texts[l_textKey]);
 							
 							var l_entry=spawnPrefab('textareaTemplate',l_registry, false);
-							//l_entry.children[0].value=l_idea.texts[l_textKey];
+							l_entry.children[0].value=l_idea.texts[l_textKey];
 						}
 					}
 				}
