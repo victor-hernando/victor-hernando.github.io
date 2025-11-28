@@ -21,11 +21,13 @@
 	</style>
 	<body>
 		<script>
-			function spawnPrefab(template, containerClose)
+			function spawnPrefab(template, containerClose, useParent)
 			{
 				const l_template = document.getElementById(template);
 				const l_clone = l_template.content.cloneNode(true); // copia profunda
-				const l_container = containerClose.parentElement;
+				const l_container = containerClose
+				if(useParent)
+					l_container=containerClose.parentElement;
 				
 				console.log("Reference: "+containerClose+" container "+l_container);
 				//const l_container = document.getElementById(container);
@@ -167,7 +169,7 @@
 						console.log("Nombre:", l_idea.name);
 						
                     	var l_parent=document.getElementById("addTextareaBtn");
-						var l_registry=spawnPrefab('registryTemplate',l_parent);
+						var l_registry=spawnPrefab('registryTemplate',l_parent, true);
 						//console.log("registry: "+l_registry);
 						//l_registry.children[0].value=l_idea.name;
 
@@ -176,7 +178,7 @@
 						{
 							console.log("\t\t-", l_idea.texts[l_textKey]);
 							
-							var l_entry=spawnPrefab('textareaTemplate',l_registry, true);
+							var l_entry=spawnPrefab('textareaTemplate',l_registry, false);
 							//l_entry.children[0].value=l_idea.texts[l_textKey];
 						}
 					}
@@ -196,14 +198,14 @@
 		<div id="btr"></div>
 		<div id="brd"></div>
 		<div id="textareaContainer" class="container">
-			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this)">Añadir textarea</button>
+			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this, true)">Añadir textarea</button>
 			<button id="btn" >Get Info</button>
 		</div>
 
 		<template id="registryTemplate">
 			<div id="registryContainer" class="registry_container">
 				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
-				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this)">Añadir Entrada</button>
+				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this, true)">Añadir Entrada</button>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
