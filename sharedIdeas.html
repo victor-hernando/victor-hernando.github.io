@@ -21,6 +21,8 @@
 	</style>
 	<body>
 		<script>
+			var m_Registers;
+			
 			function spawnPrefab(template, containerClose, useParent)
 			{
 				const l_template = document.getElementById(template);
@@ -82,7 +84,8 @@
 			const infoRef = ref(db, 'info');
 
 			const box = document.getElementById('box');
-			const btn = document.getElementById('btn');
+			const getBtn = document.getElementById('getInfoBtn');
+			const saveBtn = document.getElementById('saveInfoBtn');
 
 
             let referencia = ref(db, "info/idea 1/texts/0");
@@ -125,10 +128,10 @@
             */
 
 
-			btn.addEventListener('click', () => {
-
-				/*
-				if (snapshot.exists())
+			getBtn.addEventListener('click', () =>
+			{
+				//Rellenado de prefabs segun info
+				if(snapshot.exists())
 				{
 					const l_info = snapshot.val();
 				
@@ -137,31 +140,31 @@
 						const l_idea = l_info[l_key];
 						console.log("ID:", l_key);
 						console.log("Nombre:", l_idea.name);
-					
+						
+                    	var l_parent=document.getElementById("addTextareaBtn");
+						var l_registry=spawnPrefab('registryTemplate', l_parent, true);
+						console.log("registry: "+l_registry);
+						l_registry.children[0].value=l_idea.name;
+
 						console.log("Texts:");
 						for (const l_textKey in l_idea.texts)
 						{
 							console.log("\t\t-", l_idea.texts[l_textKey]);
+							
+							var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
+							l_entry.children[0].value=l_idea.texts[l_textKey];
 						}
 					}
 				}
-				
-				console.log("New info");
-
-				if (snapshot.exists())
+                else
                 {
-                    console.log("Valor:", snapshot.val());
-                    console.log("Valor idea1:", snapshot.val()["idea1"]);
-                    console.log("Valor idea1 name:", snapshot.val()["idea1"]["name"]);
-                    console.log("Valor idea1 length:", snapshot.val()["idea1"]["texts"].length);
-                    console.log("Valor idea1 1st text:", snapshot.val()["idea1"]["texts"][1]);
-                    console.log(" ");
-                    console.log("Valor idea 1:", snapshot.val()["idea 1"]);
-                    console.log("Valor idea 1 name:", snapshot.val()["idea 1"]["name"]);
-                }
-				*/
-
-				//Rellenado de prefabs segun info
+                    console.log("No existe ese dato");
+                }   
+			});
+			
+			saveBtn.addEventListener('click', () =>
+			{
+				/*
 				if(snapshot.exists())
 				{
 					const l_info = snapshot.val();
@@ -190,9 +193,10 @@
                 else
                 {
                     console.log("No existe ese dato");
-                }   
+                }
+				*/
 			});
-
+			
 		</script>
 
     	<!--h1>Hola Mundo!</h1>
@@ -203,7 +207,8 @@
 		<div id="brd"></div>
 		<div id="textareaContainer" class="container">
 			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this, true)">Añadir textarea</button>
-			<button id="btn" >Get Info</button>
+			<button id="getInfoBtn" >Get Info</button>
+			<button id="saveInfoBtn" >Save Info</button>
 		</div>
 
 		<template id="registryTemplate">
