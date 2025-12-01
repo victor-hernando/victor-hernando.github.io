@@ -21,7 +21,7 @@
 	</style>
 	<body>
 		<script>
-			var m_Registers;
+			var m_Registers=[];
 			
 			function spawnPrefab(template, containerClose, useParent)
 			{
@@ -135,24 +135,61 @@
 				{
 					const l_info = snapshot.val();
 				
-					for (const l_key in l_info)
+					//for (const l_key in l_info)
+					//{
+					//	const l_idea = l_info[l_key];
+					//	console.log("ID:", l_key);
+					//	console.log("Nombre:", l_idea.name);
+					//	
+                    //	var l_parent=document.getElementById("addTextareaBtn");
+					//	var l_registry=spawnPrefab('registryTemplate', l_parent, true);
+					//	console.log("registry: "+l_registry);
+					//	l_registry.children[0].value=l_idea.name;
+					//
+					//	console.log("Texts:");
+					//	for (const l_textKey in l_idea.texts)
+					//	{
+					//		console.log("\t\t-", l_idea.texts[l_textKey]);
+					//		
+					//		var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
+					//		l_entry.children[0].value=l_idea.texts[l_textKey];
+					//	}
+					//}
+					for(var i = 0; i < l_info.length; i++)
 					{
-						const l_idea = l_info[l_key];
-						console.log("ID:", l_key);
+						const l_idea = l_info[i];
+						console.log("ID:", i);
 						console.log("Nombre:", l_idea.name);
 						
                     	var l_parent=document.getElementById("addTextareaBtn");
 						var l_registry=spawnPrefab('registryTemplate', l_parent, true);
 						console.log("registry: "+l_registry);
 						l_registry.children[0].value=l_idea.name;
-
+					
 						console.log("Texts:");
+						
+						var l_newRegister=[];
+						l_newRegister.name=l_idea.name;
+						l_newRegister.texts=[];
+						
 						for (const l_textKey in l_idea.texts)
 						{
 							console.log("\t\t-", l_idea.texts[l_textKey]);
 							
 							var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
 							l_entry.children[0].value=l_idea.texts[l_textKey];
+							l_newRegister.texts[l_textKey]=l_idea.texts[l_textKey]
+						}
+						m_Registers[i]=l_newRegister;
+					}
+					console.log("Registers: ");
+					for (var i = 0; i < m_Registers.length; i++)
+					{
+						console.log("Nº "+i);
+						console.log("\t-", m_Registers[i].name+" - "+m_Registers[i].texts.length);
+						for (var j = 0; j < m_Registers[i].texts.length; j++)
+						{
+							console.log("\t\t-", m_Registers[i].texts[j]);
 						}
 					}
 				}
