@@ -164,6 +164,15 @@
 			
 			saveBtn.addEventListener('click', () =>
 			{
+				var elements = document.getElementsByClassName("registry_container");
+				var names=[];
+				for(var i = 0; i < elements.length; i++)
+				{
+					var l_element = elements[i].children[0];
+					//console.log("value: "+l_element.value);
+					names[i] = l_element.value;
+				}
+				console.log("registries: "+names);
 				/*
 				if(snapshot.exists())
 				{
@@ -195,18 +204,14 @@
                     console.log("No existe ese dato");
                 }
 				*/
-			});
-			
+			});			
 		</script>
 
     	<!--h1>Hola Mundo!</h1>
     	<p>Welcome to my 2nd GitHub Page!</p-->
-
-		<div id="br"></div>
-		<div id="btr"></div>
-		<div id="brd"></div>
+		
 		<div id="textareaContainer" class="container">
-			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this, true)">Añadir textarea</button>
+			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this, false)">Añadir textarea</button>
 			<button id="getInfoBtn" >Get Info</button>
 			<button id="saveInfoBtn" >Save Info</button>
 		</div>
