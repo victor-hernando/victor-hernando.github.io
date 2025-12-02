@@ -20,10 +20,45 @@
 		}
 	</style>
 	<body>
+		<script>
+			var m_Registers=[];
+			
+			function spawnPrefab(template, containerClose, useParent)
+			{
+				const l_template = document.getElementById(template);
+				const l_clone = l_template.content.cloneNode(true); // copia profunda
+				var l_container = containerClose
+				if(useParent)
+					l_container=containerClose.parentElement;
+				
+				const l_root = l_clone.children[0];
+
+				console.log("Reference: "+containerClose+" container "+l_container);
+				//const l_container = document.getElementById(container);
+
+				// Añadir una línea de separación opcional
+				const l_br = document.createElement("br");
+
+				// Buscar botón eliminar dentro del clon
+				const l_removeBtn = l_clone.querySelector(".removeBtn");
+				l_removeBtn.onclick = function()
+				{
+					// El padre del botón es el elemento entero
+					this.parentElement.remove();
+					l_br.remove();
+				};
+
+				l_container.appendChild(l_br);
+				l_container.appendChild(l_clone);
+
+				return l_root;
+			}
+			//addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
+		</script>
 		<script type="module">
 			// Import the functions you need from the SDKs you need
     	    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    	  	import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+    	  	import { getDatabase, ref, onValue, set, get} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
     	    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
     	    // TODO: Add SDKs for Firebase products that you want to use
     	    // https://firebase.google.com/docs/web/setup#available-libraries
@@ -46,52 +81,190 @@
     	    const analytics = getAnalytics(app);
 			const db = getDatabase(app);
 
-			const colorRef = ref(db, 'sharedColor');
-			const txtRef = ref(db, 'sharedText');
+			const infoRef = ref(db, 'info');
+			const testInfoRef = ref(db, 'testInfo');
 
 			const box = document.getElementById('box');
-			const btn = document.getElementById('btn');
-			const NameTxtField = document.getElementById('NameText');
-			const AgeTxtField = document.getElementById('AgeText');
-		
+			const getBtn = document.getElementById('getInfoBtn');
+			const saveBtn = document.getElementById('saveInfoBtn');
 
-			onValue(colorRef, (snapshot) => {
-				const color = snapshot.val() || 'red';
-				box.style.background = color;
+
+            let referencia = ref(db, "info/idea 1/texts/0");
+            let snapshot = await get(referencia);
+			
+            if (snapshot.exists())
+            {
+				console.log("Valor:", snapshot.val());
+            }
+            else
+            {
+				console.log("No existe ese dato");
+            }  
+
+			referencia = ref(db, "info");
+			snapshot = await get(referencia);
+			
+			
+            if (snapshot.exists())
+            {
+				console.log("Valor:", snapshot.val());
+            }
+            else
+            {
+				console.log("No existe ese dato");
+            }  
+
+
+			/*
+            onValue(infoRef, (snapshot) => {
+				const l_info = snapshot.val() || "null";
+                if(l_info!="null")
+                {
+                    console.log("info: "+l_info);
+                    var l_parent=element.getElementById("addTextareaBtn");
+                    var l_registry=spawnPrefab('registryTemplate',l_parent);
+                    l_registry.children[0].value=infoRef.name;
+                }
 			});
+            */
 
-			onValue(txtRef, (snapshot) => {
-				const text = snapshot.val();
-				//txtRefField.value = text;
 
-				console.log("Info changed");
-				console.log("User's name; "+text.name);
-				console.log("User's age; "+text.age);
-
-				NameTxtField.value=text.name;
-				AgeTxtField.value=text.age;
+			getBtn.addEventListener('click', () =>
+			{
+				//Rellenado de prefabs segun info
+				if(snapshot.exists())
+				{
+					const l_info = snapshot.val();
+				
+					//for (const l_key in l_info)
+					//{
+					//	const l_idea = l_info[l_key];
+					//	console.log("ID:", l_key);
+					//	console.log("Nombre:", l_idea.name);
+					//	
+                    //	var l_parent=document.getElementById("addTextareaBtn");
+					//	var l_registry=spawnPrefab('registryTemplate', l_parent, true);
+					//	console.log("registry: "+l_registry);
+					//	l_registry.children[0].value=l_idea.name;
+					//
+					//	console.log("Texts:");
+					//	for (const l_textKey in l_idea.texts)
+					//	{
+					//		console.log("\t\t-", l_idea.texts[l_textKey]);
+					//		
+					//		var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
+					//		l_entry.children[0].value=l_idea.texts[l_textKey];
+					//	}
+					//}
+					for(var i = 0; i < l_info.length; i++)
+					{
+						const l_idea = l_info[i];
+						console.log("ID:", i);
+						console.log("Nombre:", l_idea.name);
+						
+                    	var l_parent=document.getElementById("addTextareaBtn");
+						var l_registry=spawnPrefab('registryTemplate', l_parent, true);
+						console.log("registry: "+l_registry);
+						l_registry.children[0].value=l_idea.name;
+					
+						console.log("Texts:");
+						
+						var l_newRegister=[];
+						l_newRegister.name=l_idea.name;
+						l_newRegister.texts=[];
+						
+						for (const l_textKey in l_idea.texts)
+						{
+							console.log("\t\t-", l_idea.texts[l_textKey]);
+							
+							var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
+							l_entry.children[0].value=l_idea.texts[l_textKey];
+							l_newRegister.texts[l_textKey]=l_idea.texts[l_textKey]
+						}
+						m_Registers[i]=l_newRegister;
+					}
+					console.log("Registers: ");
+					for (var i = 0; i < m_Registers.length; i++)
+					{
+						console.log("Nº "+i);
+						console.log("\t-", m_Registers[i].name+" - "+m_Registers[i].texts.length);
+						for (var j = 0; j < m_Registers[i].texts.length; j++)
+						{
+							console.log("\t\t-", m_Registers[i].texts[j]);
+						}
+					}
+				}
+                else
+                {
+                    console.log("No existe ese dato");
+                }   
 			});
+			
+			saveBtn.addEventListener('click', () =>
+			{
+				//const newColor = box.style.background === 'red' ? 'blue' : 'red';
+				//set(colorRef, newColor);
+				//
+				//var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
+				//console.log(userInfo);
+				//set(txtRef, userInfo);
+				set(testInfoRef, m_Registers);
+				
+				/*
+				if(snapshot.exists())
+				{
+					const l_info = snapshot.val();
+				
+					for (const l_key in l_info)
+					{
+						const l_idea = l_info[l_key];
+						console.log("ID:", l_key);
+						console.log("Nombre:", l_idea.name);
+						
+                    	var l_parent=document.getElementById("addTextareaBtn");
+						var l_registry=spawnPrefab('registryTemplate',l_parent, true);
+						console.log("registry: "+l_registry);
+						l_registry.children[0].value=l_idea.name;
 
-
-			btn.addEventListener('click', () => {
-				const newColor = box.style.background === 'red' ? 'blue' : 'red';
-				set(colorRef, newColor);
-
-				var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
-				console.log(userInfo);
-				set(txtRef, userInfo);
-			});
+						console.log("Texts:");
+						for (const l_textKey in l_idea.texts)
+						{
+							console.log("\t\t-", l_idea.texts[l_textKey]);
+							
+							var l_entry=spawnPrefab('textareaTemplate',l_registry, false);
+							l_entry.children[0].value=l_idea.texts[l_textKey];
+						}
+					}
+				}
+                else
+                {
+                    console.log("No existe ese dato");
+                }
+				*/
+			});			
 		</script>
 
-    	<h1>Hola Mundo!</h1>
-    	<p>Welcome to my 2nd GitHub Page!</p>
-
-		<div id="box" style="width: 150px; height: 150px; background: blue; margin: 20px auto;"></div>
-		<div id="container">
-			<input type="text" id="NameText" name="name" required="" minlength="4" maxlength="8" size="10" style="width:150px;height:150px; auto">
-			<textarea id="AgeText" name="age" style="width:550px;height:150px; auto"></textarea>
+    	<!--h1>Hola Mundo!</h1>
+    	<p>Welcome to my 2nd GitHub Page!</p-->
+		
+		<div id="textareaContainer" class="container">
+			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this, false)">Añadir textarea</button>
+			<button id="getInfoBtn" >Get Info</button>
+			<button id="saveInfoBtn" >Save Info</button>
 		</div>
-		<div id="textareaContainer"	></div>
-		<button id="btn" >Cambiar color</button>		
+
+		<template id="registryTemplate">
+			<div id="registryContainer" class="registry_container">
+				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
+				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this, true)">Añadir Entrada</button>
+				<button class="removeBtn">Eliminar</button>
+			</div>
+		</template>
+		<template id="textareaTemplate">
+			<div class="textArea_container">
+				<textarea id="textContent" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px);"></textarea>
+				<button class="removeBtn">Eliminar</button>
+			</div>
+		</template>
  	</body>
 </html>
