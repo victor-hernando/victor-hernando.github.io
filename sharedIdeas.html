@@ -92,7 +92,7 @@
 		    let referencia = ref(db, "info/idea 1/texts/0");
 		    let snapshot = await get(referencia);
 
-		    if (snapshot.exists())
+		    if(snapshot.exists())
 		    {
 		        console.log("Valor:", snapshot.val());
 		    }
@@ -105,7 +105,7 @@
 		    snapshot = await get(referencia);
 
 
-		    if (snapshot.exists())
+		    if(snapshot.exists())
 		    {
 		        console.log("Valor:", snapshot.val());
 		    }
@@ -113,8 +113,6 @@
 		    {
 		        console.log("No existe ese dato");
 		    }
-
-
 		    /*
 		    onValue(infoRef, (snapshot) => {
 		        const l_info = snapshot.val() || "null";
@@ -127,35 +125,34 @@
 		        }
 		    });
 		    */
-
-
 		    getBtn.addEventListener('click', () =>
 		    {
 		        //Rellenado de prefabs segun info
 		        if(snapshot.exists())
 		        {
 		            const l_info = snapshot.val();
-
-		            //for (const l_key in l_info)
-		            //{
-		            //	const l_idea = l_info[l_key];
-		            //	console.log("ID:", l_key);
-		            //	console.log("Nombre:", l_idea.name);
-		            //
-		            //	var l_parent=document.getElementById("addTextareaBtn");
-		            //	var l_registry=spawnPrefab('registryTemplate', l_parent, true);
-		            //	console.log("registry: "+l_registry);
-		            //	l_registry.children[0].value=l_idea.name;
-		            //
-		            //	console.log("Texts:");
-		            //	for (const l_textKey in l_idea.texts)
-		            //	{
-		            //		console.log("\t\t-", l_idea.texts[l_textKey]);
-		            //
-		            //		var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
-		            //		l_entry.children[0].value=l_idea.texts[l_textKey];
-		            //	}
-		            //}
+					/*
+		            for (const l_key in l_info)
+		            {
+		            	const l_idea = l_info[l_key];
+		            	console.log("ID:", l_key);
+		            	console.log("Nombre:", l_idea.name);
+		            
+		            	var l_parent=document.getElementById("addTextareaBtn");
+		            	var l_registry=spawnPrefab('registryTemplate', l_parent, true);
+		            	console.log("registry: "+l_registry);
+		            	l_registry.children[0].value=l_idea.name;
+		            
+		            	console.log("Texts:");
+		            	for (const l_textKey in l_idea.texts)
+		            	{
+		            		console.log("\t\t-", l_idea.texts[l_textKey]);
+		            
+		            		var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
+		            		l_entry.children[0].value=l_idea.texts[l_textKey];
+		            	}
+		            }
+					*/
 		            for(var i = 0; i < l_info.length; i++)
 		            {
 		                const l_idea = l_info[i];
@@ -170,7 +167,7 @@
 		                console.log("Texts:");
 
 		                var l_newRegister=[];
-		                l_newRegister.name=l_idea.name;
+		                l_newRegister.name=l_registry.children[0];
 		                l_newRegister.texts=[];
 
 		                for (const l_textKey in l_idea.texts)
@@ -179,7 +176,7 @@
 
 		                    var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
 		                    l_entry.children[0].value=l_idea.texts[l_textKey];
-		                    l_newRegister.texts[l_textKey]=l_idea.texts[l_textKey]
+		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
 		                }
 		                m_Registers[i]=l_newRegister;
 		            }
@@ -202,14 +199,34 @@
 
 		    saveBtn.addEventListener('click', () =>
 		    {
-		        //const newColor = box.style.background === 'red' ? 'blue' : 'red';
-		        //set(colorRef, newColor);
-		        //
-		        //var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
-		        //console.log(userInfo);
-		        //set(txtRef, userInfo);
-		        set(testInfoRef, m_Registers);
-
+		        /*
+				const newColor = box.style.background === 'red' ? 'blue' : 'red';
+		        set(colorRef, newColor);
+		        
+		        var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
+		        console.log(userInfo);
+		        set(txtRef, userInfo);
+				*/
+		        var l_Registers=[];
+				
+				console.log("Save Data");
+				
+				for(var i = 0; i < m_Registers.length; i++)
+				{
+					var l_newRegister=[];
+					l_newRegister.name=m_Registers[i].name.value;
+					console.log("\t-", l_newRegister.name);
+					l_newRegister.texts=[];
+	
+					for (const l_textKey in m_Registers[i].texts)
+					{
+						console.log("\t\t-", m_Registers[i].texts[l_textKey].value);
+	
+						l_newRegister.texts[l_textKey]=m_Registers[i].texts[l_textKey].value;
+					}
+					l_Registers[i]=l_newRegister;
+				}
+				set(testInfoRef, l_Registers);
 		        /*
 		        if(snapshot.exists())
 		        {
