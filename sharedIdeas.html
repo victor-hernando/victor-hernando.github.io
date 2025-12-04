@@ -22,6 +22,15 @@
 	<body>
 		<script>
 			var m_Registers=[];
+			var m_AddBtn=document.getElementById("addTextareaBtn");
+			
+			m_AddBtn.onclick = function()
+			{
+				var l_registry=spawnPrefab('registryTemplate',this, false);
+				var l_newRegister=[];
+				l_newRegister.name=l_registry.children[0];
+				l_newRegister.texts=[];
+			};
 
 		    function spawnPrefab(template, containerClose, useParent)
 		    {
@@ -184,10 +193,10 @@
 		            for (var i = 0; i < m_Registers.length; i++)
 		            {
 		                console.log("Nº "+i);
-		                console.log("\t-", m_Registers[i].name+" - "+m_Registers[i].texts.length);
+		                console.log("\t-", m_Registers[i].name.value+" - "+m_Registers[i].texts.length);
 		                for (var j = 0; j < m_Registers[i].texts.length; j++)
 		                {
-		                    console.log("\t\t-", m_Registers[i].texts[j]);
+		                    console.log("\t\t-", m_Registers[i].texts[j].value);
 		                }
 		            }
 		        }
@@ -265,7 +274,7 @@
 		<p>Welcome to my 2nd GitHub Page!</p-->
 
 		<div id="textareaContainer" class="container">
-			<button id="addTextareaBtn" onclick="spawnPrefab('registryTemplate',this, false)">Añadir textarea</button>
+			<button id="addTextareaBtn">Añadir textarea</button>
 			<button id="getInfoBtn" >Get Info</button>
 			<button id="saveInfoBtn" >Save Info</button>
 		</div>
