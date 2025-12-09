@@ -91,7 +91,6 @@
 		    const db = getDatabase(app);
 
 		    const infoRef = ref(db, 'info');
-		    infoRef = ref(db, 'testInfo');
 		    const testInfoRef = ref(db, 'testInfo');
 
 		    const box = document.getElementById('box');
@@ -110,8 +109,8 @@
 		    {
 		        console.log("No existe ese dato");
 		    }
-
-		    referencia = ref(db, "info");
+			//here changed
+		    referencia = ref(db, "testInfo");
 		    snapshot = await get(referencia);
 
 
@@ -295,4 +294,5 @@
 		</template>
 	</body>
 </html>
+
 
