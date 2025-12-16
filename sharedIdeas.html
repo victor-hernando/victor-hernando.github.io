@@ -20,18 +20,7 @@
 	    }
 	</style>
 	<body>
-		<script>
-			var m_Registers=[];
-			var m_AddBtn=document.getElementById("addTextareaBtn");
-			
-			m_AddBtn.onclick = function()
-			{
-				var l_registry=spawnPrefab('registryTemplate',this, false);
-				var l_newRegister=[];
-				l_newRegister.name=l_registry.children[0];
-				l_newRegister.texts=[];
-			};
-
+		<script>						
 		    function spawnPrefab(template, containerClose, useParent)
 		    {
 		        const l_template = document.getElementById(template);
@@ -46,22 +35,38 @@
 		        //const l_container = document.getElementById(container);
 
 		        // Añadir una línea de separación opcional
-		        const l_br = document.createElement("br");
+		        //const l_br = document.createElement("br");
 
 		        // Buscar botón eliminar dentro del clon
-		        const l_removeBtn = l_clone.querySelector(".removeBtn");
-		        l_removeBtn.onclick = function()
-		        {
-		            // El padre del botón es el elemento entero
-		            this.parentElement.remove();
-		            l_br.remove();
-		        };
+		        //const l_removeBtn = l_clone.querySelector(".removeBtn");
+				//
+		        //l_removeBtn.onclick = function()
+		        //{
+		        //    // El padre del botón es el elemento entero
+		        //    this.parentElement.remove();
+		        //    //l_br.remove();
+		        //};
 
-		        l_container.appendChild(l_br);
+		        //l_container.appendChild(l_br);
 		        l_container.appendChild(l_clone);
 
 		        return l_root;
 		    }
+			
+			function printRegisters()
+			{
+				console.log("Save Data");
+				
+				for(var i = 0; i < m_Registers.length; i++)
+				{
+					console.log("\t-", m_Registers[i].name.value);
+	
+					for (const l_textKey in m_Registers[i].texts)
+					{
+						console.log("\t\t-", m_Registers[i].texts[l_textKey].value);
+					}
+				}
+			}
 		    //addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
 		</script>
 		<script type="module">
@@ -168,9 +173,27 @@
 		                console.log("ID:", i);
 		                console.log("Nombre:", l_idea.name);
 
-		                var l_parent=document.getElementById("addTextareaBtn");
-		                var l_registry=spawnPrefab('registryTemplate', l_parent, true);
-		                console.log("registry: "+l_registry);
+		                //var l_parent=document.getElementById("addTextareaBtn");
+		                var l_parent=document.getElementById("textareaContainer");
+		                var l_registry=spawnPrefab('registryTemplate', l_parent, false);
+		                console.log("registry: "+l_registry+" at "+i);
+						
+						let l_removeBtn = l_registry.querySelector(".removeBtn");
+						let l_Idx=i;
+							
+						l_removeBtn.onclick = function()
+						{
+							console.log("Pre Splice - "+l_Idx);
+							printRegisters();
+							m_Registers.splice(l_Idx,1);
+							console.log("Post Splice");
+							printRegisters();
+							
+							// El padre del botón es el elemento entero
+							l_removeBtn.parentElement.remove();
+							//l_br.remove();
+						};
+						
 		                l_registry.children[0].value=l_idea.name;
 
 		                console.log("Texts:");
@@ -179,13 +202,26 @@
 		                l_newRegister.name=l_registry.children[0];
 		                l_newRegister.texts=[];
 
-		                for (const l_textKey in l_idea.texts)
+		                for(var l_textKey in l_idea.texts)
 		                {
 		                    console.log("\t\t-", l_idea.texts[l_textKey]);
 
 		                    var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
 		                    l_entry.children[0].value=l_idea.texts[l_textKey];
 		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
+							
+							l_removeBtn = l_entry.querySelector(".removeBtn");
+							
+							let l_newIdx=l_textKey;
+							
+							l_removeBtn.onclick = function()
+							{
+								// El padre del botón es el elemento entero
+								l_removeBtn.parentElement.remove();
+								console.log("index "+l_newIdx+" is "+m_Registers[l_Idx].texts[l_newIdx]);
+								m_Registers[l_Idx].texts.splice(l_newIdx,1);
+								//l_br.remove();
+							};
 		                }
 		                m_Registers[i]=l_newRegister;
 		            }
@@ -292,7 +328,35 @@
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
+		<script>
+			var m_Registers=[];
+			var m_AddBtn=document.getElementById("addTextareaBtn");
+			
+			m_AddBtn.onclick = function()
+			{
+				var l_parent=document.getElementById("textareaContainer");
+				var l_registry=spawnPrefab('registryTemplate',l_parent, false);
+				var l_newRegister=[];
+				l_newRegister.name=l_registry.children[0];
+				l_newRegister.texts=[];
+				
+				let l_removeBtn = l_registry.querySelector(".removeBtn");
+				let l_Idx=m_Registers.length;
+					
+				l_removeBtn.onclick = function()
+				{
+					console.log("Pre Splice - "+l_Idx);
+					printRegisters();
+					m_Registers.splice(l_Idx,1);
+					console.log("Post Splice");
+					printRegisters();
+					
+					// El padre del botón es el elemento entero
+					l_removeBtn.parentElement.remove();
+					//l_br.remove();
+				};
+				m_Registers[m_Registers.length]=l_newRegister
+			};
+		</script>
 	</body>
-</html>
-
-
+</html>	
