@@ -32,22 +32,7 @@
 		        const l_root = l_clone.children[0];
 
 		        console.log("Reference: "+containerClose+" container "+l_container);
-		        //const l_container = document.getElementById(container);
-
-		        // Añadir una línea de separación opcional
-		        //const l_br = document.createElement("br");
-
-		        // Buscar botón eliminar dentro del clon
-		        //const l_removeBtn = l_clone.querySelector(".removeBtn");
-				//
-		        //l_removeBtn.onclick = function()
-		        //{
-		        //    // El padre del botón es el elemento entero
-		        //    this.parentElement.remove();
-		        //    //l_br.remove();
-		        //};
-
-		        //l_container.appendChild(l_br);
+				
 		        l_container.appendChild(l_clone);
 
 		        return l_root;
@@ -127,46 +112,13 @@
 		    {
 		        console.log("No existe ese dato");
 		    }
-		    /*
-		    onValue(infoRef, (snapshot) => {
-		        const l_info = snapshot.val() || "null";
-		        if(l_info!="null")
-		        {
-		            console.log("info: "+l_info);
-		            var l_parent=element.getElementById("addTextareaBtn");
-		            var l_registry=spawnPrefab('registryTemplate',l_parent);
-		            l_registry.children[0].value=infoRef.name;
-		        }
-		    });
-		    */
 		    getBtn.addEventListener('click', () =>
 		    {
 		        //Rellenado de prefabs segun info
 		        if(snapshot.exists())
 		        {
 		            const l_info = snapshot.val();
-					/*
-		            for (const l_key in l_info)
-		            {
-		            	const l_idea = l_info[l_key];
-		            	console.log("ID:", l_key);
-		            	console.log("Nombre:", l_idea.name);
-		            
-		            	var l_parent=document.getElementById("addTextareaBtn");
-		            	var l_registry=spawnPrefab('registryTemplate', l_parent, true);
-		            	console.log("registry: "+l_registry);
-		            	l_registry.children[0].value=l_idea.name;
-		            
-		            	console.log("Texts:");
-		            	for (const l_textKey in l_idea.texts)
-		            	{
-		            		console.log("\t\t-", l_idea.texts[l_textKey]);
-		            
-		            		var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
-		            		l_entry.children[0].value=l_idea.texts[l_textKey];
-		            	}
-		            }
-					*/
+					
 		            for(var i = 0; i < l_info.length; i++)
 		            {
 		                const l_idea = l_info[i];
@@ -208,7 +160,6 @@
 
 		                    var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
 		                    l_entry.children[0].value=l_idea.texts[l_textKey];
-		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
 							
 							l_removeBtn = l_entry.querySelector(".removeBtn");
 							
@@ -222,6 +173,7 @@
 								m_Registers[l_Idx].texts.splice(l_newIdx,1);
 								//l_br.remove();
 							};
+		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
 		                }
 		                m_Registers[i]=l_newRegister;
 		            }
@@ -244,14 +196,6 @@
 
 		    saveBtn.addEventListener('click', () =>
 		    {
-		        /*
-				const newColor = box.style.background === 'red' ? 'blue' : 'red';
-		        set(colorRef, newColor);
-		        
-		        var userInfo={name: NameTxtField.value, age: AgeTxtField.value};
-		        console.log(userInfo);
-		        set(txtRef, userInfo);
-				*/
 		        var l_Registers=[];
 				
 				console.log("Save Data");
@@ -272,37 +216,6 @@
 					l_Registers[i]=l_newRegister;
 				}
 				set(testInfoRef, l_Registers);
-		        /*
-		        if(snapshot.exists())
-		        {
-		            const l_info = snapshot.val();
-
-		            for (const l_key in l_info)
-		            {
-		                const l_idea = l_info[l_key];
-		                console.log("ID:", l_key);
-		                console.log("Nombre:", l_idea.name);
-
-		                var l_parent=document.getElementById("addTextareaBtn");
-		                var l_registry=spawnPrefab('registryTemplate',l_parent, true);
-		                console.log("registry: "+l_registry);
-		                l_registry.children[0].value=l_idea.name;
-
-		                console.log("Texts:");
-		                for (const l_textKey in l_idea.texts)
-		                {
-		                    console.log("\t\t-", l_idea.texts[l_textKey]);
-
-		                    var l_entry=spawnPrefab('textareaTemplate',l_registry, false);
-		                    l_entry.children[0].value=l_idea.texts[l_textKey];
-		                }
-		            }
-		        }
-		        else
-		        {
-		            console.log("No existe ese dato");
-		        }
-		        */
 		    });
 		</script>
 
@@ -359,4 +272,4 @@
 			};
 		</script>
 	</body>
-</html>	
+</html>
