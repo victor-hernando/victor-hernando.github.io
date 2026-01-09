@@ -37,9 +37,9 @@
 
 		        return l_root;
 		    }
-			function spawnTextArea(registry, info, regKey, entryKey)
+			function spawnEntry(parentRegistry, info, regKey, entryKey)
 			{
-				var l_entry=spawnPrefab('textareaTemplate', registry, false);
+				var l_entry=spawnPrefab('entryTemplate', parentRegistry, false);
 				l_entry.children[0].value=info.texts[entryKey];
 				
 				let l_removeBtn = l_entry.querySelector(".removeBtn");
@@ -71,7 +71,7 @@
 					}
 				}
 			}
-		    //addTextareaBtn.addEventListener('click', () => {spawnPrefab();});
+		    //addRegistryBtn.addEventListener('click', () => {spawnPrefab();});
 		</script>
 		<script type="module">
 			// Import the functions you need from the SDKs you need
@@ -144,8 +144,8 @@
 		                console.log("ID:", i);
 		                console.log("Nombre:", l_idea.name);
 
-		                //var l_parent=document.getElementById("addTextareaBtn");
-		                var l_parent=document.getElementById("textareaContainer");
+		                //var l_parent=document.getElementById("addRegistryBtn");
+		                var l_parent=document.getElementById("registryContainer");
 		                var l_registry=spawnPrefab('registryTemplate', l_parent, false);
 		                console.log("registry: "+l_registry+" at "+i);
 						
@@ -176,8 +176,8 @@
 		                for(var l_textKey in l_idea.texts)
 		                {
 		                    console.log("\t\t-", l_idea.texts[l_textKey]);
-
-		                    //var l_entry=spawnPrefab('textareaTemplate', l_registry, false);
+							{
+		                    //var l_entry=spawnPrefab('entryTemplate', l_registry, false);
 		                    //l_entry.children[0].value=l_idea.texts[l_textKey];
 							//
 							//l_removeBtn = l_entry.querySelector(".removeBtn");
@@ -192,7 +192,9 @@
 							//	m_Registers[l_Idx].texts.splice(l_newIdx,1);
 							//	//l_br.remove();
 							//};
-		                    var l_entry=spawnTextArea(l_registry, l_idea, l_Idx, l_textKey);
+							}
+							
+							var l_entry=spawnEntry(l_registry, l_idea, l_Idx, l_textKey);
 		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
 		                }
 		                m_Registers[i]=l_newRegister;
@@ -242,8 +244,8 @@
 		<!--h1>Hola Mundo!</h1>
 		<p>Welcome to my 2nd GitHub Page!</p-->
 
-		<div id="textareaContainer" class="container">
-			<button id="addTextareaBtn">Añadir textarea</button>
+		<div id="registryContainer" class="container">
+			<button id="addRegistryBtn">Añadir registro</button>
 			<button id="getInfoBtn" >Get Info</button>
 			<button id="saveInfoBtn" >Save Info</button>
 		</div>
@@ -251,24 +253,24 @@
 		<template id="registryTemplate">
 			<div id="registryContainer" class="registry_container">
 				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
-				<button class="addBtn" onclick="spawnPrefab('textareaTemplate',this, true)">Añadir Entrada</button>
-				<!--button class="addBtn">Añadir Entrada</button-->
+				<!--button class="addBtn" onclick="spawnPrefab('entryTemplate',this, true)">Añadir Entrada</button-->
+				<button class="addBtn">Añadir Entrada</button>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
-		<template id="textareaTemplate">
-			<div class="textArea_container">
+		<template id="entryTemplate">
+			<div class="entry_container">
 				<textarea id="textContent" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px);"></textarea>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
 		<script>
 			var m_Registers=[];
-			var m_AddBtn=document.getElementById("addTextareaBtn");
+			var m_AddBtn=document.getElementById("addRegistryBtn");
 			
 			m_AddBtn.onclick = function()
 			{
-				var l_parent=document.getElementById("textareaContainer");
+				var l_parent=document.getElementById("registryContainer");
 				var l_registry=spawnPrefab('registryTemplate',l_parent, false);
 				var l_newRegister=[];
 				l_newRegister.name=l_registry.children[0];
@@ -289,6 +291,18 @@
 					l_removeBtn.parentElement.remove();
 					//l_br.remove();
 				};
+				
+				//new add button
+				let l_addBtn = l_registry.querySelector(".addBtn");
+				let l_Idx=m_Registers.length;
+					
+				l_addBtn.onclick = function()
+				{				
+					var l_entry=spawnEntry(l_registry, l_idea, l_Idx, l_textKey);
+					l_newRegister.texts[l_newRegister.texts.length]=l_entry.children[0];
+		
+				};
+				//end new add button
 				m_Registers[m_Registers.length]=l_newRegister
 			};
 		</script>
