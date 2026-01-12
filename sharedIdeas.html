@@ -18,6 +18,12 @@
 	        outline-offset: -1px;
 	        outline-width: 1px;
 	    }
+		/*
+		.entry_container
+		{
+			display: flex;
+		}
+		*/
 	</style>
 	<body>
 		<script>						
@@ -40,7 +46,8 @@
 			function spawnEntry(parentRegistry, info, regKey, entryKey)
 			{
 				var l_entry=spawnPrefab('entryTemplate', parentRegistry, false);
-				l_entry.children[0].value=info.texts[entryKey];
+				if(info!="")
+					l_entry.children[0].value=info.texts[entryKey];
 				
 				let l_removeBtn = l_entry.querySelector(".removeBtn");
 				
@@ -149,9 +156,10 @@
 		                var l_registry=spawnPrefab('registryTemplate', l_parent, false);
 		                console.log("registry: "+l_registry+" at "+i);
 						
-						let l_removeBtn = l_registry.querySelector(".removeBtn");
 						let l_Idx=i;
-							
+						
+						let l_removeBtn = l_registry.querySelector(".removeBtn");
+						
 						l_removeBtn.onclick = function()
 						{
 							console.log("Pre Splice - "+l_Idx);
@@ -176,28 +184,21 @@
 		                for(var l_textKey in l_idea.texts)
 		                {
 		                    console.log("\t\t-", l_idea.texts[l_textKey]);
-							{
-		                    //var l_entry=spawnPrefab('entryTemplate', l_registry, false);
-		                    //l_entry.children[0].value=l_idea.texts[l_textKey];
-							//
-							//l_removeBtn = l_entry.querySelector(".removeBtn");
-							//
-							//let l_newIdx=l_textKey;
-							//
-							//l_removeBtn.onclick = function()
-							//{
-							//	// El padre del botón es el elemento entero
-							//	l_removeBtn.parentElement.remove();
-							//	console.log("index "+l_newIdx+" is "+m_Registers[l_Idx].texts[l_newIdx]);
-							//	m_Registers[l_Idx].texts.splice(l_newIdx,1);
-							//	//l_br.remove();
-							//};
-							}
 							
 							var l_entry=spawnEntry(l_registry, l_idea, l_Idx, l_textKey);
 		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
 		                }
+						
 		                m_Registers[i]=l_newRegister;
+						
+						let l_addBtn = l_registry.querySelector(".addBtn");
+						
+						l_addBtn.onclick = function()
+						{				
+							var l_entryIdx=l_newRegister.texts.length
+							var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
+							l_newRegister.texts[l_entryIdx]=l_entry.children[0];
+						};
 		            }
 		            console.log("Registers: ");
 		            for (var i = 0; i < m_Registers.length; i++)
@@ -255,6 +256,7 @@
 				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
 				<!--button class="addBtn" onclick="spawnPrefab('entryTemplate',this, true)">Añadir Entrada</button-->
 				<button class="addBtn">Añadir Entrada</button>
+				<button class="toggleBtn">Switch</button>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
@@ -276,8 +278,9 @@
 				l_newRegister.name=l_registry.children[0];
 				l_newRegister.texts=[];
 				
-				let l_removeBtn = l_registry.querySelector(".removeBtn");
 				let l_Idx=m_Registers.length;
+								
+				let l_removeBtn = l_registry.querySelector(".removeBtn");
 					
 				l_removeBtn.onclick = function()
 				{
@@ -294,16 +297,38 @@
 				
 				//new add button
 				let l_addBtn = l_registry.querySelector(".addBtn");
-				let l_Idx=m_Registers.length;
 					
 				l_addBtn.onclick = function()
 				{				
-					var l_entry=spawnEntry(l_registry, l_idea, l_Idx, l_textKey);
-					l_newRegister.texts[l_newRegister.texts.length]=l_entry.children[0];
-		
+					var l_entryIdx=l_newRegister.texts.length
+					var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
+					l_entry.style.display="block";
+					l_newRegister.texts[l_entryIdx]=l_entry.children[0];
 				};
-				//end new add button
-				m_Registers[m_Registers.length]=l_newRegister
+				
+				//end new add button.
+				m_Registers[l_Idx]=l_newRegister
+				
+				let l_toggleBtn = l_registry.querySelector(".toggleBtn")
+				//let l_toggleBtns = m_Registers[l_Idx].texts[0].parent.style.visibility;
+					
+				l_toggleBtn.onclick = function()
+				{
+					console.log("before style");
+					//var l_visibility=m_Registers[l_Idx].texts[0].parentElement;
+					var l_FirstElement=m_Registers[l_Idx].texts[0].parentElement;
+					console.log("style 1st Element: "+l_FirstElement.style.display);
+					var l_Visibility=l_FirstElement.style.display=="none" ? "block" : "none";
+					
+					console.log("visibility: "+l_Visibility);
+					
+					for(var i = 0; i <  m_Registers[l_Idx].texts.length; i++)
+					{
+						var l_NewElement=m_Registers[l_Idx].texts[i].parentElement;
+						l_NewElement.style.display=l_Visibility;
+						console.log("style Element ["+i+"]: "+l_NewElement.style.display);
+					}					
+				};
 			};
 		</script>
 	</body>
