@@ -78,7 +78,6 @@
 					}
 				}
 			}
-		    //addRegistryBtn.addEventListener('click', () => {spawnPrefab();});
 		</script>
 		<script type="module">
 			// Import the functions you need from the SDKs you need
@@ -152,9 +151,14 @@
 		                console.log("Nombre:", l_idea.name);
 
 		                //var l_parent=document.getElementById("addRegistryBtn");
-		                var l_parent=document.getElementById("registryContainer");
-		                var l_registry=spawnPrefab('registryTemplate', l_parent, false);
+		                var l_parent=document.getElementById("elementContainer");
+						
+		                const l_registry=spawnPrefab('registryTemplate', l_parent, false);
 		                console.log("registry: "+l_registry+" at "+i);
+
+		                const l_newRegister=[];
+		                l_newRegister.name=l_registry.children[0];
+		                l_newRegister.texts=[];
 						
 						let l_Idx=i;
 						
@@ -173,13 +177,23 @@
 							//l_br.remove();
 						};
 						
+						let l_addBtn = l_registry.querySelector(".addBtn");
+						
+						l_addBtn.onclick = function()
+						{				
+							var l_entryIdx=l_newRegister.texts.length
+							var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
+							console.log("registry "+l_newRegister);
+							console.log("registry name: "+l_newRegister.name.value);
+							l_entry.style.display="block";
+							l_newRegister.texts[l_entryIdx]=l_entry.children[0];
+						};
+						
+		                m_Registers[i]=l_newRegister;
+						
 		                l_registry.children[0].value=l_idea.name;
 
 		                console.log("Texts:");
-
-		                var l_newRegister=[];
-		                l_newRegister.name=l_registry.children[0];
-		                l_newRegister.texts=[];
 
 		                for(var l_textKey in l_idea.texts)
 		                {
@@ -188,17 +202,24 @@
 							var l_entry=spawnEntry(l_registry, l_idea, l_Idx, l_textKey);
 		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
 		                }
-						
-		                m_Registers[i]=l_newRegister;
-						
-						let l_addBtn = l_registry.querySelector(".addBtn");
-						
-						l_addBtn.onclick = function()
-						{				
-							var l_entryIdx=l_newRegister.texts.length
-							var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
-							l_newRegister.texts[l_entryIdx]=l_entry.children[0];
-						};
+
+						//Toggle Visibility
+						let l_toggleBtn = l_registry.querySelector(".toggleBtn")
+							
+						l_toggleBtn.onclick = function()
+						{
+							var l_Visibility=m_Registers[l_Idx].texts[0].parentElement.style.display=="none" ? "block" : "none";
+							
+							l_toggleBtn.innerHTML = (l_Visibility == "none" ? "Mostrar" : "Ocultar") + " Registros"
+							
+							//console.log("visibility: "+l_Visibility);
+							
+							for(var i = 0; i <  m_Registers[l_Idx].texts.length; i++)
+							{
+								//console.log("style Element ["+i+"]: "+m_Registers[l_Idx].texts[i].parentElement.style.display);
+								m_Registers[l_Idx].texts[i].parentElement.style.display=l_Visibility;
+							}					
+						};						
 		            }
 		            console.log("Registers: ");
 		            for (var i = 0; i < m_Registers.length; i++)
@@ -245,7 +266,7 @@
 		<!--h1>Hola Mundo!</h1>
 		<p>Welcome to my 2nd GitHub Page!</p-->
 
-		<div id="registryContainer" class="container">
+		<div id="elementContainer" class="container">
 			<button id="addRegistryBtn">Añadir registro</button>
 			<button id="getInfoBtn" >Get Info</button>
 			<button id="saveInfoBtn" >Save Info</button>
@@ -254,9 +275,9 @@
 		<template id="registryTemplate">
 			<div id="registryContainer" class="registry_container">
 				<input id="name" rows="1" cols="40" placeholder = "Nombre..." style="position: relative"></input>
-				<!--button class="addBtn" onclick="spawnPrefab('entryTemplate',this, true)">Añadir Entrada</button-->
+				
 				<button class="addBtn">Añadir Entrada</button>
-				<button class="toggleBtn">Switch</button>
+				<button class="toggleBtn">Ocultar Registros</button>
 				<button class="removeBtn">Eliminar</button>
 			</div>
 		</template>
@@ -272,7 +293,7 @@
 			
 			m_AddBtn.onclick = function()
 			{
-				var l_parent=document.getElementById("registryContainer");
+				var l_parent=document.getElementById("elementContainer");
 				var l_registry=spawnPrefab('registryTemplate',l_parent, false);
 				var l_newRegister=[];
 				l_newRegister.name=l_registry.children[0];
@@ -306,27 +327,24 @@
 					l_newRegister.texts[l_entryIdx]=l_entry.children[0];
 				};
 				
-				//end new add button.
 				m_Registers[l_Idx]=l_newRegister
 				
+				
+				//Toggle Visibility
 				let l_toggleBtn = l_registry.querySelector(".toggleBtn")
-				//let l_toggleBtns = m_Registers[l_Idx].texts[0].parent.style.visibility;
 					
 				l_toggleBtn.onclick = function()
 				{
-					console.log("before style");
-					//var l_visibility=m_Registers[l_Idx].texts[0].parentElement;
-					var l_FirstElement=m_Registers[l_Idx].texts[0].parentElement;
-					console.log("style 1st Element: "+l_FirstElement.style.display);
-					var l_Visibility=l_FirstElement.style.display=="none" ? "block" : "none";
+					var l_Visibility=m_Registers[l_Idx].texts[0].parentElement.style.display=="none" ? "block" : "none";
 					
-					console.log("visibility: "+l_Visibility);
+					l_toggleBtn.innerHTML = (l_Visibility == "none" ? "Mostrar" : "Ocultar") + " Registros"
+					
+					//console.log("visibility: "+l_Visibility);
 					
 					for(var i = 0; i <  m_Registers[l_Idx].texts.length; i++)
 					{
-						var l_NewElement=m_Registers[l_Idx].texts[i].parentElement;
-						l_NewElement.style.display=l_Visibility;
-						console.log("style Element ["+i+"]: "+l_NewElement.style.display);
+						//console.log("style Element ["+i+"]: "+m_Registers[l_Idx].texts[i].parentElement.style.display);
+						m_Registers[l_Idx].texts[i].parentElement.style.display=l_Visibility;
 					}					
 				};
 			};
