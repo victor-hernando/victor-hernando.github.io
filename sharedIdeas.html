@@ -34,7 +34,11 @@
 	        background-color: beige;
 	        outline-style: solid;
 	        outline-offset: -1px;
-	        outline-width: 1px;
+	        outline-width: 1px;			
+			padding-top: 10;
+			padding-bottom: 10px;
+			padding-left: 10px;
+			margin-bottom: 5px;
 	    }
 		.entryAdapter
 		{
@@ -48,7 +52,6 @@
 			outline-width: 1px;
 			
 			margin-top: 5px;
-			margin-left: 5px;
 		}
 		.entry_container
 		{
@@ -338,7 +341,7 @@
 		<template id="entryTemplate">
 			<div id="entryAdapter" class="entryAdapter">
 				<div class="entry_container">
-					<textarea id="textContent" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px);"></textarea>
+					<textarea id="textContent" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px); resize: none;"></textarea>
 					<button class="removeBtn">Eliminar</button>
 				</div>
 			</div>
