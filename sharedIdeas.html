@@ -80,13 +80,11 @@
 	</style>
 	<body>
 		<script>						
-		    function spawnPrefab(template, containerClose, useParent)
+		    function spawnPrefab(template, containerClose)
 		    {
 		        const l_template = document.getElementById(template);
 		        const l_clone = l_template.content.cloneNode(true); // copia profunda
 		        var l_container = containerClose
-		        if(useParent)
-		            l_container=containerClose.parentElement;
 
 		        const l_root = l_clone.children[0].children[0];
 
@@ -98,9 +96,9 @@
 		    }
 			function spawnEntry(parentRegistry, info, regKey, entryKey)
 			{
-				var l_entry=spawnPrefab('entryTemplate', parentRegistry, false);
+				var l_entry=spawnPrefab('entryTemplate', parentRegistry);
 				if(info!="")
-					l_entry.children[0].value=info.texts[entryKey];
+					l_entry.children[0].value=info.texts[entryKey].text;
 				
 				let l_removeBtn = l_entry.querySelector(".removeBtn");
 				
@@ -204,9 +202,9 @@
 		                console.log("Nombre:", l_idea.name);
 
 		                //var l_parent=document.getElementById("addRegistryBtn");
-		                var l_parent=document.getElementById("rootContainer");
+		                var l_parent=document.getElementById("RegistryChildContainer");
 						
-		                const l_registry=spawnPrefab('registryTemplate', l_parent, false);
+		                const l_registry=spawnPrefab('registryTemplate', l_parent);
 		                console.log("registry: "+l_registry+" at "+i);
 
 		                const l_newRegister=[];
@@ -253,6 +251,10 @@
 		                    console.log("\t\t-", l_idea.texts[l_textKey]);
 							
 							var l_entry=spawnEntry(l_registry, l_idea, l_Idx, l_textKey);
+							
+							console.log("\t\t\t-",l_idea.texts.visibility);
+							
+							l_entry.style.display=l_idea.visibility;
 		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
 		                }
 
@@ -301,14 +303,22 @@
 				{
 					var l_newRegister=[];
 					l_newRegister.name=m_Registers[i].name.value;
+					
 					console.log("\t-", l_newRegister.name);
+					console.log("\t-Visibility: ", m_Registers[i].texts[0].parentElement.style.display);
+					
 					l_newRegister.texts=[];
+					
+					l_newRegister.visibility=m_Registers[i].texts[0].parentElement.style.display;
 	
 					for (const l_textKey in m_Registers[i].texts)
 					{
 						console.log("\t\t-", m_Registers[i].texts[l_textKey].value);
+						console.log("\t\t\t-Visibility: ", m_Registers[i].texts[l_textKey].parentElement.style.display);
 	
-						l_newRegister.texts[l_textKey]=m_Registers[i].texts[l_textKey].value;
+						l_newRegister.texts[l_textKey]=[];
+						
+						l_newRegister.texts[l_textKey].text=m_Registers[i].texts[l_textKey].value;
 					}
 					l_Registers[i]=l_newRegister;
 				}
@@ -323,6 +333,7 @@
 			<button id="addRegistryBtn">Añadir registro</button>
 			<button id="getInfoBtn" >Get Info</button>
 			<button id="saveInfoBtn" >Save Info</button>
+			<div id="RegistryChildContainer"<!-- style="display: flex; flex-direction: column-reverse;"--></div>
 		</div>
 
 		<template id="registryTemplate">
@@ -361,8 +372,8 @@
 			
 			m_AddBtn.onclick = function()
 			{
-				var l_parent=document.getElementById("rootContainer");
-				var l_registry=spawnPrefab('registryTemplate',l_parent, false);
+				var l_parent=document.getElementById("RegistryChildContainer");
+				var l_registry=spawnPrefab('registryTemplate',l_parent);
 				var l_newRegister=[];
 				l_newRegister.name=l_registry.children[0];
 				l_newRegister.texts=[];
