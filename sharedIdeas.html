@@ -260,12 +260,14 @@
 
 						//Toggle Visibility
 						let l_toggleBtn = l_registry.querySelector(".toggleBtn")
-							
+
+						l_toggleBtn.innerHTML = (l_idea.visibility == "none" ? "Mostrar" : "Ocultar") + " Registros";
+						
 						l_toggleBtn.onclick = function()
 						{
 							var l_Visibility=m_Registers[l_Idx].texts[0].parentElement.style.display=="none" ? "block" : "none";
 							
-							l_toggleBtn.innerHTML = (l_Visibility == "none" ? "Mostrar" : "Ocultar") + " Registros"
+							l_toggleBtn.innerHTML = (l_Visibility == "none" ? "Mostrar" : "Ocultar") + " Registros";
 							
 							//console.log("visibility: "+l_Visibility);
 							
@@ -430,3 +432,4 @@
 		</script>
 	</body>
 </html>
+
