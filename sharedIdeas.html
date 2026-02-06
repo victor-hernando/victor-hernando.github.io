@@ -217,15 +217,22 @@
 						
 						l_removeBtn.onclick = function()
 						{
-							console.log("Pre Splice - "+l_Idx);
-							printRegisters();
-							m_Registers.splice(l_Idx,1);
-							console.log("Post Splice");
-							printRegisters();
+							var l_Name=m_Registers[l_Idx].name.value;
+						
+							l_Name=l_Name!="" ? l_Name : "Sin nombre";
 							
-							// El padre del botón es el elemento entero
-							l_removeBtn.parentElement.remove();
-							//l_br.remove();
+							if(window.confirm("Seguro que quieres eliminar el registro: "+l_Name))
+							{
+								console.log("Pre Splice - "+l_Idx);
+								printRegisters();
+								m_Registers.splice(l_Idx,1);
+								console.log("Post Splice");
+								printRegisters();
+								
+								// El padre del botón es el elemento entero
+								l_removeBtn.parentElement.parentElement.parentElement.remove();
+								//l_br.remove();
+							}
 						};
 						
 						let l_addBtn = l_registry.querySelector(".addBtn");
@@ -236,7 +243,7 @@
 							var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
 							console.log("registry "+l_newRegister);
 							console.log("registry name: "+l_newRegister.name.value);
-							l_entry.style.display="block";
+							l_entry.style.display="flex";
 							l_newRegister.texts[l_entryIdx]=l_entry.children[0];
 						};
 						
@@ -265,7 +272,7 @@
 						
 						l_toggleBtn.onclick = function()
 						{
-							var l_Visibility=m_Registers[l_Idx].texts[0].parentElement.style.display=="none" ? "block" : "none";
+							var l_Visibility=m_Registers[l_Idx].texts[0].parentElement.style.display=="none" ? "flex" : "none";
 							
 							l_toggleBtn.innerHTML = (l_Visibility == "none" ? "Mostrar" : "Ocultar") + " Registros";
 							
@@ -355,7 +362,7 @@
 			<div id="entryAdapter" class="entryAdapter">
 				<div class="entry_container">
 					<textarea id="textContent" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px); resize: none;"></textarea>
-					<button class="removeBtn">Eliminar</button>
+					<button class="removeBtn" style="width: calc(3lh);text-indent: 10px;">X</button>
 				</div>
 			</div>
 		</template>
@@ -386,15 +393,22 @@
 					
 				l_removeBtn.onclick = function()
 				{
-					console.log("Pre Splice - "+l_Idx);
-					printRegisters();
-					m_Registers.splice(l_Idx,1);
-					console.log("Post Splice");
-					printRegisters();
+					var l_Name=m_Registers[l_Idx].name.value;
 					
-					// El padre del botón es el elemento entero
-					l_removeBtn.parentElement.remove();
-					//l_br.remove();
+					l_Name=l_Name!="" ? l_Name : "Sin nombre";
+					
+					if(window.confirm("Seguro que quieres eliminar el registro: "+l_Name))
+					{
+						console.log("Pre Splice - "+l_Idx);
+						printRegisters();
+						m_Registers.splice(l_Idx,1);
+						console.log("Post Splice");
+						printRegisters();
+						
+						// El padre del botón es el elemento entero
+						l_removeBtn.parentElement.parentElement.parentElement.remove();
+						//l_br.remove();
+					}
 				};
 				
 				//new add button
@@ -404,7 +418,7 @@
 				{				
 					var l_entryIdx=l_newRegister.texts.length
 					var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
-					l_entry.style.display="block";
+					l_entry.style.display="flex";
 					l_newRegister.texts[l_entryIdx]=l_entry.children[0];
 				};
 				
@@ -416,7 +430,7 @@
 					
 				l_toggleBtn.onclick = function()
 				{
-					var l_Visibility=m_Registers[l_Idx].texts[0].parentElement.style.display=="none" ? "block" : "none";
+					var l_Visibility=m_Registers[l_Idx].texts[0].parentElement.style.display=="none" ? "flex" : "none";
 					
 					l_toggleBtn.innerHTML = (l_Visibility == "none" ? "Mostrar" : "Ocultar") + " Registros"
 					
