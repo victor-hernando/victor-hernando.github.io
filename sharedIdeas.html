@@ -94,9 +94,9 @@
 
 		        return l_root;
 		    }
-			function spawnEntry(parentRegistry, info, regKey, entryKey)
+			function spawnEntry(type, parentRegistry, info, regKey, entryKey)
 			{
-				var l_entry=spawnPrefab('entryTemplate', parentRegistry);
+				var l_entry=spawnPrefab(type+'EntryTemplate', parentRegistry);
 				if(info!="")
 					l_entry.children[0].value=info.texts[entryKey].text;
 				
@@ -240,7 +240,7 @@
 						l_addBtn.onclick = function()
 						{				
 							var l_entryIdx=l_newRegister.texts.length
-							var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
+							var l_entry=spawnEntry("text", l_registry, "", l_Idx, l_entryIdx);
 							console.log("registry "+l_newRegister);
 							console.log("registry name: "+l_newRegister.name.value);
 							l_entry.style.display="flex";
@@ -257,7 +257,7 @@
 		                {
 		                    console.log("\t\t-", l_idea.texts[l_textKey]);
 							
-							var l_entry=spawnEntry(l_registry, l_idea, l_Idx, l_textKey);
+							var l_entry=spawnEntry("text", l_registry, l_idea, l_Idx, l_textKey);
 							
 							console.log("\t\t\t-",l_idea.texts.visibility);
 							
@@ -354,14 +354,27 @@
 						<button class="addBtn">Añadir Entrada</button>
 						<button class="toggleBtn">Ocultar Registros</button>
 						<button class="removeBtn">Eliminar</button>
+						<select name="selection" id="selection">
+							<option value="text">Texto</option>
+							<option value="image">Imagen</option>
+						</select>
 					</div>
 				</div>
 			</div>
 		</template>
-		<template id="entryTemplate">
+		<template id="textEntryTemplate">
 			<div id="entryAdapter" class="entryAdapter">
 				<div class="entry_container">
 					<textarea id="textContent" placeholder = "Escribe algo..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px); resize: none;"></textarea>
+					<button class="removeBtn" style="width: calc(3lh);text-indent: 10px;">X</button>
+				</div>
+			</div>
+		</template>
+		<template id="imageEntryTemplate">
+			<div id="entryAdapter" class="entryAdapter">
+				<div class="entry_container">
+					<!--textarea id="textContent" placeholder = "Ponme una foto..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px); resize: none;"></textarea-->
+					<button class="textContent" style="width: calc(3lh);text-indent: 10px;">Subir Foto</button>
 					<button class="removeBtn" style="width: calc(3lh);text-indent: 10px;">X</button>
 				</div>
 			</div>
@@ -413,14 +426,17 @@
 				
 				//new add button
 				let l_addBtn = l_registry.querySelector(".addBtn");
+				const l_Selection = l_registry.querySelector("#selection");
 					
 				l_addBtn.onclick = function()
 				{				
 					var l_entryIdx=l_newRegister.texts.length
-					var l_entry=spawnEntry(l_registry, "", l_Idx, l_entryIdx);
+					var l_entry=spawnEntry(l_Selection.value, l_registry, "", l_Idx, l_entryIdx);
 					l_entry.style.display="flex";
 					l_newRegister.texts[l_entryIdx]=l_entry.children[0];
+					console.log(l_Selection.value);
 				};
+				
 				
 				m_Registers[l_Idx]=l_newRegister
 				
@@ -446,4 +462,3 @@
 		</script>
 	</body>
 </html>
-
