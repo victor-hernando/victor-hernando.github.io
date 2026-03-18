@@ -77,6 +77,51 @@
 	        outline-width: 1px;
 			*/
 	    }
+		input[type="file"]
+		{
+			display: none;
+		}
+		.upload-area
+		{
+			width: 150px;
+			height: 75px;
+			border: 2px dashed #888;
+			border-radius: 10px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background-color: white;
+			cursor: pointer;
+			transition: 0.2s;
+			text-align: center;
+			margin-right: 15px;
+		}
+		.upload-area.used
+		{		
+			margin-left: 15px;
+			align-self: anchor-center;
+		}
+		.upload-area.dragover
+		{
+			border-color: #2196F3;
+			background-color: #e3f2fd;
+		}
+		.preview-container
+		{
+			display: flex;
+			flex-wrap: wrap;
+			gap: 15px;
+			justify-content: center;
+			max-width: 800px;
+		}	
+		.preview-container img
+		{
+			max-width: 200px;
+			max-height: 200px;
+			border-radius: 8px;
+			box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+			object-fit: cover;
+		}
 	</style>
 	<body>
 		<script>						
@@ -98,7 +143,17 @@
 			{
 				var l_entry=spawnPrefab(type+'EntryTemplate', parentRegistry);
 				if(info!="")
-					l_entry.children[0].value=info.texts[entryKey].text;
+				{
+					if(type=="text")
+						l_entry.children[0].value=info.texts[entryKey].text;
+					else
+					{
+						let l_Container = l_entry.querySelector(".preview-container");
+						const img = document.createElement("img");
+						img.src = info.texts[entryKey].src;
+						l_Container.appendChild(img);
+					}
+				}
 				
 				let l_removeBtn = l_entry.querySelector(".removeBtn");
 				
@@ -109,16 +164,63 @@
 					// El padre del botón es el elemento entero
 					l_removeBtn.parentElement.remove();
 					console.log("index "+l_newIdx+" is "+m_Registers[regKey].texts[l_newIdx]);
+					
+					console.log("Pre Erease");
+					printRegisters()
+					
 					m_Registers[regKey].texts.splice(l_newIdx,1);
+					
+					console.log("Post Erease");
+					printRegisters()
+					
 					//l_br.remove();
 				};
 				
+				//Set up image button
+				if(type=="image")
+				{
+					let l_imageBtn = l_entry.querySelector(".imageButton");
+					let l_uploadArea = l_entry.querySelector(".upload-area");
+					let l_Container = l_entry.querySelector(".preview-container");
+				
+					console.log("set up image holder");
+					
+					l_imageBtn.addEventListener("change", (event) =>
+					{					
+						if(!uploadArea.classList.contains("used"))
+							uploadArea.classList.add("used");
+							
+						handleFiles(event.target.files, l_Container);
+					});
+					
+					uploadArea.addEventListener("dragover", (event) =>
+					{
+						event.preventDefault();
+						uploadArea.classList.add("dragover");
+					});
+				
+					uploadArea.addEventListener("dragleave", () =>
+					{
+						uploadArea.classList.remove("dragover");
+					});
+				
+					uploadArea.addEventListener("drop", (event) =>
+					{						
+						if(!uploadArea.classList.contains("used"))
+							uploadArea.classList.add("used");
+							
+						event.preventDefault();
+						uploadArea.classList.remove("dragover");
+						handleFiles(event.dataTransfer.files, l_Container);
+					});
+					//here
+				}				
 				return l_entry;
 			}
 			function printRegisters()
 			{
 				console.log("Save Data");
-				
+								
 				for(var i = 0; i < m_Registers.length; i++)
 				{
 					console.log("\t-", m_Registers[i].name.value);
@@ -127,6 +229,31 @@
 					{
 						console.log("\t\t-", m_Registers[i].texts[l_textKey].value);
 					}
+				}
+			}
+			function handleFiles(files, container)
+			{
+				console.log("handleFiles");
+									
+				for (let i = 0; i < files.length; ++i)
+				{
+					const file = files[i];
+		
+					if (!file.type.startsWith("image/"))
+					{
+						continue;
+					}
+		
+					const reader = new FileReader();
+		
+					reader.onload = function(e)
+					{
+						const img = document.createElement("img");
+						img.src = e.target.result;
+						container.appendChild(img);
+					};
+		
+					reader.readAsDataURL(file);
 				}
 			}
 		</script>
@@ -210,6 +337,7 @@
 		                const l_newRegister=[];
 		                l_newRegister.name=l_registry.children[0];
 		                l_newRegister.texts=[];
+		                l_newRegister.types=[];
 						
 						let l_Idx=i;
 						
@@ -221,7 +349,7 @@
 						
 							l_Name=l_Name!="" ? l_Name : "Sin nombre";
 							
-							if(window.confirm("Seguro que quieres eliminar el registro: "+l_Name))
+							if(window.confirm("¿Seguro que quieres eliminar el registro: "+l_Name)+"?")
 							{
 								console.log("Pre Splice - "+l_Idx);
 								printRegisters();
@@ -255,14 +383,15 @@
 
 		                for(var l_textKey in l_idea.texts)
 		                {
-		                    console.log("\t\t-", l_idea.texts[l_textKey]);
+		                    console.log("\t\t-Idea: ", l_idea.texts[l_textKey]);
 							
-							var l_entry=spawnEntry("text", l_registry, l_idea, l_Idx, l_textKey);
+							var l_entry=spawnEntry(l_idea.texts[l_textKey].type, l_registry, l_idea, l_Idx, l_textKey);
 							
 							console.log("\t\t\t-",l_idea.texts.visibility);
 							
 							l_entry.style.display=l_idea.visibility;
-		                    l_newRegister.texts[l_textKey]=l_entry.children[0];
+		                    l_newRegister.texts[l_textKey]=l_entry.children[0];							
+							l_newRegister.types[l_textKey]=l_idea.texts[l_textKey].type;
 		                }
 
 						//Toggle Visibility
@@ -301,7 +430,6 @@
 		            console.log("No existe ese dato");
 		        }
 		    });
-
 		    saveBtn.addEventListener('click', () =>
 		    {
 		        var l_Registers=[];
@@ -313,21 +441,37 @@
 					var l_newRegister=[];
 					l_newRegister.name=m_Registers[i].name.value;
 					
-					console.log("\t-", l_newRegister.name);
+					console.log("\t-Register: ", l_newRegister.name);
 					console.log("\t-Visibility: ", m_Registers[i].texts[0].parentElement.style.display);
 					
 					l_newRegister.texts=[];
 					
 					l_newRegister.visibility=m_Registers[i].texts[0].parentElement.style.display;
 	
-					for (const l_textKey in m_Registers[i].texts)
+					//for (const l_textKey in m_Registers[i].texts)
+					for (let j=0; j<m_Registers[i].texts.length; j++)
 					{
-						console.log("\t\t-", m_Registers[i].texts[l_textKey].value);
-						console.log("\t\t\t-Visibility: ", m_Registers[i].texts[l_textKey].parentElement.style.display);
-	
-						l_newRegister.texts[l_textKey]=[];
+						console.log("Type: "+m_Registers[i].types[j]);
 						
-						l_newRegister.texts[l_textKey].text=m_Registers[i].texts[l_textKey].value;
+						l_newRegister.texts[j]=[];
+						
+						if(m_Registers[i].types[j]=="image")
+						{
+							console.log("\t\t-Image Entry: ", m_Registers[i].texts[j].children[0].id);
+							console.log("\t\t-src: ", m_Registers[i].texts[j].children[0].src);
+							//console.log("\t\t\t-Visibility: ", m_Registers[i].texts[j].parentElement.style.display);
+
+							l_newRegister.texts[j].src=m_Registers[i].texts[j].children[0].src;
+						}
+						else
+						{
+							console.log("\t\t-Text Entry: ", m_Registers[i].texts[j].value);
+							console.log("\t\t\t-Visibility: ", m_Registers[i].texts[j].parentElement.style.display);
+							
+							l_newRegister.texts[j].text=m_Registers[i].texts[j].value;
+						}
+						
+						l_newRegister.texts[j].type=m_Registers[i].types[j];
 					}
 					l_Registers[i]=l_newRegister;
 				}
@@ -373,8 +517,14 @@
 		<template id="imageEntryTemplate">
 			<div id="entryAdapter" class="entryAdapter">
 				<div class="entry_container">
+					<div class="preview-container" id="previewContainer"></div>
+					<label class="upload-area" id="uploadArea">
+						Click o arrastra<br>para<br>añadir Imagen\es
+						<input type="file" class="imageButton" id="fileInput" accept="image/*" multiple>
+					</label>
 					<!--textarea id="textContent" placeholder = "Ponme una foto..." style="position: relative; top: -15%; left: 15px; height: 50px; width: calc(100% - 30px); resize: none;"></textarea-->
-					<button class="textContent" style="width: calc(3lh);text-indent: 10px;">Subir Foto</button>
+					<!--input type="file" class="imageButton" id="fileInput" accept="image/*" multiple>Subir Foto
+					<button class="imageButton" style="width: calc(13lh);text-indent: 10px;">Subir Foto</button-->
 					<button class="removeBtn" style="width: calc(3lh);text-indent: 10px;">X</button>
 				</div>
 			</div>
@@ -399,6 +549,7 @@
 				var l_newRegister=[];
 				l_newRegister.name=l_registry.children[0];
 				l_newRegister.texts=[];
+				l_newRegister.types=[];
 				
 				let l_Idx=m_Registers.length;
 								
@@ -410,7 +561,7 @@
 					
 					l_Name=l_Name!="" ? l_Name : "Sin nombre";
 					
-					if(window.confirm("Seguro que quieres eliminar el registro: "+l_Name))
+					if(window.confirm("¿Seguro que quieres eliminar el registro: "+l_Name+"?"))
 					{
 						console.log("Pre Splice - "+l_Idx);
 						printRegisters();
@@ -430,17 +581,16 @@
 					
 				l_addBtn.onclick = function()
 				{				
-					var l_entryIdx=l_newRegister.texts.length
+					var l_entryIdx=l_newRegister.texts.length;
 					var l_entry=spawnEntry(l_Selection.value, l_registry, "", l_Idx, l_entryIdx);
 					l_entry.style.display="flex";
 					l_newRegister.texts[l_entryIdx]=l_entry.children[0];
+					l_newRegister.types[l_entryIdx]=l_Selection.value;
 					console.log(l_Selection.value);
 				};
-				
-				
+								
 				m_Registers[l_Idx]=l_newRegister
-				
-				
+								
 				//Toggle Visibility
 				let l_toggleBtn = l_registry.querySelector(".toggleBtn")
 					
@@ -461,7 +611,4 @@
 			};
 		</script>
 	</body>
-
 </html>
-
-
