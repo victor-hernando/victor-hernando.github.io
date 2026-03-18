@@ -149,9 +149,12 @@
 					else
 					{
 						let l_Container = l_entry.querySelector(".preview-container");
-						const img = document.createElement("img");
-						img.src = info.texts[entryKey].src;
-						l_Container.appendChild(img);
+						for(var i = 0; i <  info.texts[entryKey].src.length; i++)
+						{							
+							const img = document.createElement("img");
+							img.src = info.texts[entryKey].src[i];
+							l_Container.appendChild(img);
+						}
 					}
 				}
 				
@@ -457,11 +460,18 @@
 						
 						if(m_Registers[i].types[j]=="image")
 						{
-							console.log("\t\t-Image Entry: ", m_Registers[i].texts[j].children[0].id);
-							console.log("\t\t-src: ", m_Registers[i].texts[j].children[0].src);
-							//console.log("\t\t\t-Visibility: ", m_Registers[i].texts[j].parentElement.style.display);
-
-							l_newRegister.texts[j].src=m_Registers[i].texts[j].children[0].src;
+							l_newRegister.texts[j].src=[];
+							
+							console.log("There are "+m_Registers[i].texts[j].children.length+" children");
+							
+							for(var k = 0; k <  m_Registers[i].texts[j].children.length; k++)
+							{
+								console.log("\t\t-Image Entry: ", m_Registers[i].texts[j].children[k].id);
+								console.log("\t\t-src: ", m_Registers[i].texts[j].children[k].src);
+								//console.log("\t\t\t-Visibility: ", m_Registers[i].texts[j].parentElement.style.display);
+							
+								l_newRegister.texts[j].src[k]=m_Registers[i].texts[j].children[k].src;
+							}
 						}
 						else
 						{
