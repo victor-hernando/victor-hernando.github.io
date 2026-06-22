@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparador de precios</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f4;
+    --bg3: #fafaf9;
+    --text: #1c1917;
+    --text2: #57534e;
+    --text3: #a8a29e;
+    --border: #e7e5e4;
+    --border2: #d6d3d1;
+    --success-bg: #f0fdf4;
+    --success: #16a34a;
+    --success-border: #bbf7d0;
+    --warn-bg: #fffbeb;
+    --warn: #d97706;
+    --warn-border: #fde68a;
+    --radius: 8px;
+    --radius-sm: 5px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1917; --bg2: #292524; --bg3: #1c1917;
+      --text: #fafaf9; --text2: #a8a29e; --text3: #57534e;
+      --border: #292524; --border2: #3c3836;
+      --success-bg: #052e16; --success: #4ade80; --success-border: #166534;
+      --warn-bg: #1c1400; --warn: #fbbf24; --warn-border: #92400e;
+    }
+  }
+
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; padding: 0; font-size: 15px; }
+  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .header-title { font-size: 18px; font-weight: 600; }
+  .header-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
+  .tab { padding: 6px 12px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; background: transparent; color: var(--text2); white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: all .15s; }
+  .tab.active { background: var(--bg2); border-color: var(--border2); color: var(--text); font-weight: 500; }
+
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; }
+  .card-header:active { background: var(--bg2); }
+  .card-body { border-top: 1px solid var(--border); padding: 12px 16px; }
+
+  .product-name { font-weight: 500; font-size: 15px; }
+  .product-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .store-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .store-row:last-child { border-bottom: none; }
+
+  .badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; }
+  .badge-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+  .badge-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+
+  .form-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; padding: 7px 10px; font-size: 14px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg2); color: var(--text); outline: none; font-family: inherit; }
+  input:focus, select:focus { border-color: var(--text3); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .form-row-auto { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; }
+  .mb12 { margin-bottom: 12px; }
+
+  .btn { padding: 8px 14px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg2); color: var(--text); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; transition: all .15s; }
+  .btn:active { opacity: .7; }
+  .btn-primary { width: 100%; justify-content: center; padding: 10px; font-size: 14px; font-weight: 500; }
+  .btn-success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+  .btn-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
+  .btn-icon { padding: 4px 6px; background: none; border: none; color: var(--text3); cursor: pointer; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .promo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 5px 10px; font-size: 12px; border-radius: 99px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; transition: all .15s; }
+  .chip.active { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); font-weight: 500; }
+
+  .search-wrap { position: relative; }
+  .search-wrap .ti-search { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; pointer-events: none; }
+  .search-wrap input { padding-left: 30px; }
+  .dropdown { background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm); margin-top: 4px; overflow: hidden; max-height: 200px; overflow-y: auto; }
+  .dropdown-item { padding: 8px 12px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:active, .dropdown-item:hover { background: var(--bg2); }
+  .dropdown-empty { padding: 8px 12px; font-size: 13px; color: var(--text3); }
+
+  .manage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .manage-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .manage-title { font-weight: 500; font-size: 14px; margin-bottom: 12px; }
+  .manage-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .manage-row:last-of-type { border-bottom: none; }
+  .edit-row { display: flex; gap: 4px; padding: 4px 0; }
+  .edit-row input { font-size: 13px; }
+
+  .savings-box { margin-top: 10px; padding: 10px; background: var(--bg2); border-radius: var(--radius-sm); font-size: 12px; color: var(--text2); }
+
+  .history-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 6px; }
+
+  .price-old { font-size: 11px; color: var(--text3); text-decoration: line-through; }
+  .price-new { font-weight: 500; font-size: 15px; }
+  .price-warn { color: var(--warn); }
+
+  .hidden { display: none !important; }
+  .flex { display: flex; }
+  .gap8 { gap: 8px; }
+  .items-center { align-items: center; }
+  .flex-wrap { flex-wrap: wrap; }
+  .text-right { text-align: right; }
+  .text-sm { font-size: 12px; color: var(--text2); }
+  .mt8 { margin-top: 8px; }
+
+  @media (max-width: 400px) {
+    .manage-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <span style="font-size:24px">🧺</span>
+    <div>
+      <div class="header-title">Comparador de precios</div>
+      <div class="header-sub" id="header-sub">0 productos · 0 tiendas</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showView('compare')" id="tab-compare"><i class="ti ti-chart-bar"></i> Comparar</button>
+    <button class="tab" onclick="showView('add')" id="tab-add"><i class="ti ti-plus"></i> Añadir</button>
+    <button class="tab" onclick="showView('history')" id="tab-history"><i class="ti ti-clock"></i> Historial</button>
+    <button class="tab" onclick="showView('manage')" id="tab-manage"><i class="ti ti-settings"></i> Gestionar</button>
+  </div>
+
+  <!-- COMPARE -->
+  <div id="view-compare">
+    <div id="compare-list"></div>
+  </div>
+
+  <!-- ADD -->
+  <div id="view-add" class="hidden">
+    <div class="form-card">
+      <div class="mb12">
+        <label>Producto</label>
+        <div class="search-wrap">
+          <i class="ti ti-search"></i>
+          <input id="product-search" placeholder="Buscar producto..." oninput="onProductSearch()" onfocus="onProductFocus()">
+        </div>
+        <div id="product-dropdown" class="dropdown hidden"></div>
+      </div>
+      <div class="mb12">
+        <label>Tienda</label>
+        <select id="form-store"></select>
+      </div>
+      <div class="form-row-auto mb12">
+        <div>
+          <label>Precio (€)</label>
+          <input type="number" id="form-price" min="0" step="0.01" placeholder="0.00" oninput="updateEffective()">
+        </div>
+        <div>
+          <label>Por</label>
+          <select id="form-unit" style="width:75px">
+            <option>kg</option><option>ud</option><option>l</option><option>100g</option><option>pack</option>
+          </select>
+        </div>
+      </div>
+      <div class="mb12">
+        <label>Promoción</label>
+        <div class="promo-chips" id="promo-chips">
+          <span class="chip active" data-promo="none" onclick="selectPromo(this)">Sin promoción</span>
+          <span class="chip" data-promo="2x1" onclick="selectPromo(this)">2x1</span>
+          <span class="chip" data-promo="3x2" onclick="selectPromo(this)">3x2</span>
+          <span class="chip" data-promo="pct" onclick="selectPromo(this)">% descuento</span>
+          <span class="chip" data-promo="2nd_half" onclick="selectPromo(this)">2ª ud. 50%</span>
+          <span class="chip" data-promo="custom" onclick="selectPromo(this)">Otra...</span>
+        </div>
+        <div id="promo-pct-wrap" class="hidden mt8">
+          <input type="number" id="promo-pct" min="1" max="99" placeholder="Ej: 20 (para 20%)" style="width:180px" oninput="updateEffective()">
+        </div>
+        <div id="promo-custom-wrap" class="hidden mt8">
+          <input type="text" id="promo-custom" placeholder="Describe la promoción...">
+        </div>
+        <div id="effective-price" class="text-sm mt8 hidden"></div>
+      </div>
+      <button class="btn btn-primary" id="add-btn" onclick="addEntry()"><i class="ti ti-plus"></i> Añadir precio</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="view-history" class="hidden">
+    <div id="history-list"></div>
+  </div>
+
+  <!-- MANAGE -->
+  <div id="view-manage" class="hidden">
+    <div class="manage-grid">
+      <div class="manage-card">
+        <div class="manage-title">Productos</div>
+        <div id="manage-products"></div>
+        <div class="flex gap8 mt8">
+          <input id="new-product" placeholder="Nuevo producto" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addProduct()">
+          <button class="btn" onclick="addProduct()"><i class="ti ti-plus"></i></button>
+        </div>
+      </div>
+      <div class="manage-card">
+        <div class="manage-title">Tiendas</div>
+        <div id="manage-stores"></div>
+        <div class="flex gap8 mt8">
+          <input id="new-store" placeholder="Nueva tienda" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addStore()">
+          <button class="btn" onclick="addStore()"><i class="ti ti-plus"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = "price-tracker-v1";
+const EMOJIS = { cebolla:"🧅", pan:"🍞", yogur:"🥛", leche:"🥛", tomate:"🍅", patata:"🥔", manzana:"🍎", arroz:"🍚", pasta:"🍝", huevo:"🥚", pollo:"🍗", aceite:"🫙", mantequilla:"🧈", queso:"🧀" };
+
+let data = { products: ["Cebolla","Pan","Yogures"], stores: ["Mercadona","Lidl","Carrefour"], entries: [] };
+let currentView = "compare";
+let selectedPromo = "none";
+let selectedProduct = null; // for compare expand
+let editingProduct = null;
+let editingStore = null;
+let formProduct = "";
+
+function getEmoji(name) {
+  const l = name.toLowerCase();
+  for (const [k, v] of Object.entries(EMOJIS)) if (l.includes(k)) return v;
+  return "🛒";
+}
+
+function effectivePrice(e) {
+  if (!e.promo || e.promo === "none") return e.price;
+  if (e.promo === "2x1") return e.price / 2;
+  if (e.promo === "3x2") return e.price * 2 / 3;
+  if (e.promo === "pct" && e.promoPct) return e.price * (1 - e.promoPct / 100);
+  if (e.promo === "2nd_half") return e.price * 0.75;
+  return e.price;
+}
+
+function promoLabel(e) {
+  if (!e.promo || e.promo === "none") return null;
+  if (e.promo === "2x1") return "2x1";
+  if (e.promo === "3x2") return "3x2";
+  if (e.promo === "pct") return `-${e.promoPct}%`;
+  if (e.promo === "2nd_half") return "2ª ud. 50%";
+  if (e.promo === "custom") return e.promoCustom || "Promo";
+  return null;
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) data = JSON.parse(raw);
+  } catch {}
+}
+
+function showView(v) {
+  currentView = v;
+  ["compare","add","history","manage"].forEach(id => {
+    document.getElementById("view-" + id).classList.toggle("hidden", id !== v);
+    document.getElementById("tab-" + id).classList.toggle("active", id === v);
+  });
+  render();
+}
+
+function getStoreLatest(product) {
+  const relevant = data.entries.filter(e => e.product === product);
+  const byStore = {};
+  relevant.forEach(e => { if (!byStore[e.store] || e.id > byStore[e.store].id) byStore[e.store] = e; });
+  return Object.values(byStore).sort((a, b) => effectivePrice(a) - effectivePrice(b));
+}
+
+function render() {
+  document.getElementById("header-sub").textContent = `${data.products.length} productos · ${data.stores.length} tiendas`;
+  if (currentView === "compare") renderCompare();
+  if (currentView === "add") renderAdd();
+  if (currentView === "history") renderHistory();
+  if (currentView === "manage") renderManage();
+}
+
+function renderCompare() {
+  const el = document.getElementById("compare-list");
+  if (!data.products.length) { el.innerHTML = '<p style="color:var(--text2);font-size:14px">Añade productos en "Gestionar".</p>'; return; }
+  el.innerHTML = data.products.map(product => {
+    const stores = getStoreLatest(product);
+    const best = stores[0];
+    const isOpen = selectedProduct === product;
+    const bestText = best
+      ? `Mejor: <span style="color:var(--success);font-weight:500">${best.store} — ${effectivePrice(best).toFixed(2)} €/${best.unit}</span>${promoLabel(best) ? ` <span class="badge badge-warn">${promoLabel(best)}</span>` : ""}`
+      : `<span style="color:var(--text3)">Sin precios aún</span>`;
+    let body = "";
+    if (isOpen) {
+      if (!stores.length) {
+        body = `<div class="card-body"><p style="font-size:13px;color:var(--text2)">Sin precios aún.</p></div>`;
+      } else {
+        const rows = stores.map((e, i) => {
+          const isBest = i === 0;
+          const effP = effectivePrice(e);
+          const diff = stores.length > 1 ? ((effP - effectivePrice(stores[0])) / effectivePrice(stores[0]) * 100).toFixed(0) : 0;
+          const promo = promoLabel(e);
+          const hasDiscount = e.promo && e.promo !== "none";
+          return `<div class="store-row">
+            <div class="flex items-center flex-wrap gap8">
+              ${isBest ? '<span class="badge badge-success">mejor</span>' : ""}
+              ${promo ? `<span class="badge badge-warn">${promo}</span>` : ""}
+              <span style="font-size:14px">${e.store}</span>
+              <span style="font-size:12px;color:var(--text3)">${e.date}</span>
+            </div>
+            <div class="flex items-center gap8">
+              ${!isBest && stores.length > 1 ? `<span style="font-size:12px;color:var(--text2)">+${diff}%</span>` : ""}
+              <div class="text-right">
+                ${hasDiscount ? `<div class="price-old">${e.price.toFixed(2)} €</div>` : ""}
+                <span class="price-new ${hasDiscount ? "price-warn" : ""}">${effP.toFixed(2)} €</span>
+                <span style="font-size:12px;color:var(--text2)">/${e.unit}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join("");
+        const savings = stores.length > 1 ? `<div class="savings-box">Ahorro máximo: <strong>${(effectivePrice(stores[stores.length-1]) - effectivePrice(stores[0])).toFixed(2)} € por ${stores[0].unit}</strong> comprando en ${stores[0].store}</div>` : "";
+        body = `<div class="card-body">${rows}${savings}</div>`;
+      }
+    }
+    return `<div class="card">
+      <div class="card-header" onclick="toggleProduct('${product.replace(/'/g,"\\'")}')">
+        <div class="flex items-center gap8">
+          <span style="font-size:20px">${getEmoji(product)}</span>
+          <div>
+            <div class="product-name">${product}</div>
+            <div class="product-sub">${bestText}</div>
+          </div>
+        </div>
+        <i class="ti ${isOpen ? "ti-chevron-up" : "ti-chevron-down"}" style="color:var(--text2)"></i>
+      </div>
+      ${body}
+    </div>`;
+  }).join("");
+}
+
+function toggleProduct(p) {
+  selectedProduct = selectedProduct === p ? null : p;
+  renderCompare();
+}
+
+function renderAdd() {
+  // populate store select
+  const sel = document.getElementById("form-store");
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Selecciona...</option>' + data.stores.map(s => `<option value="${s}"${s===prev?" selected":""}>${s}</option>`).join("");
+  // restore product search display
+  const searchEl = document.getElementById("product-search");
+  if (formProduct) searchEl.value = formProduct;
+  updateEffective();
+}
+
+function onProductSearch() {
+  formProduct = "";
+  document.getElementById("add-btn").disabled = true;
+  showProductDropdown();
+}
+
+function onProductFocus() {
+  if (!formProduct) showProductDropdown();
+}
+
+function showProductDropdown() {
+  const query = document.getElementById("product-search").value.toLowerCase();
+  const filtered = data.products.filter(p => p.toLowerCase().includes(query));
+  const dd = document.getElementById("product-dropdown");
+  if (!filtered.length) {
+    dd.innerHTML = '<div class="dropdown-empty">Sin resultados</div>';
+  } else {
+    dd.innerHTML = filtered.map(p => `<div class="dropdown-item" onclick="selectProductFromDrop('${p.replace(/'/g,"\\'")}')">${getEmoji(p)} ${p}</div>`).join("");
+  }
+  dd.classList.remove("hidden");
+}
+
+function selectProductFromDrop(p) {
+  formProduct = p;
+  document.getElementById("product-search").value = p;
+  document.getElementById("product-dropdown").classList.add("hidden");
+  checkAddBtn();
+}
+
+document.addEventListener("click", e => {
+  const dd = document.getElementById("product-dropdown");
+  if (!dd) return;
+  if (!dd.contains(e.target) && e.target.id !== "product-search") dd.classList.add("hidden");
+});
+
+function selectPromo(el) {
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+  selectedPromo = el.dataset.promo;
+  document.getElementById("promo-pct-wrap").classList.toggle("hidden", selectedPromo !== "pct");
+  document.getElementById("promo-custom-wrap").classList.toggle("hidden", selectedPromo !== "custom");
+  updateEffective();
+}
+
+function updateEffective() {
+  const price = parseFloat(document.getElementById("form-price").value);
+  const pct = parseFloat(document.getElementById("promo-pct")?.value);
+  const el = document.getElementById("effective-price");
+  const unit = document.getElementById("form-unit").value;
+  if (selectedPromo && selectedPromo !== "none" && price) {
+    const eff = effectivePrice({ price, promo: selectedPromo, promoPct: pct });
+    el.textContent = `Precio efectivo: ${eff.toFixed(2)} €/${unit}`;
+    el.classList.remove("hidden");
+  } else {
+    el.classList.add("hidden");
+  }
+  checkAddBtn();
+}
+
+function checkAddBtn() {
+  const price = document.getElementById("form-price").value;
+  const store = document.getElementById("form-store").value;
+  document.getElementById("add-btn").disabled = !formProduct || !store || !price;
+}
+
+function addEntry() {
+  const price = parseFloat(document.getElementById("form-price").value);
+  const store = document.getElementById("form-store").value;
+  const unit = document.getElementById("form-unit").value;
+  const promoPct = parseFloat(document.getElementById("promo-pct")?.value) || null;
+  const promoCustom = document.getElementById("promo-custom")?.value || null;
+  if (!formProduct || !store || !price) return;
+  const entry = { id: Date.now(), product: formProduct, store, price, unit, promo: selectedPromo, promoPct, promoCustom, date: new Date().toLocaleDateString("es-ES") };
+  data.entries.unshift(entry);
+  save();
+  // reset
+  document.getElementById("form-price").value = "";
+  document.getElementById("product-search").value = "";
+  formProduct = "";
+  selectedPromo = "none";
+  document.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c.dataset.promo === "none"));
+  document.getElementById("promo-pct-wrap").classList.add("hidden");
+  document.getElementById("promo-custom-wrap").classList.add("hidden");
+  document.getElementById("effective-price").classList.add("hidden");
+  const btn = document.getElementById("add-btn");
+  btn.innerHTML = '<i class="ti ti-check"></i> ¡Guardado!';
+  btn.classList.add("btn-success");
+  setTimeout(() => { btn.innerHTML = '<i class="ti ti-plus"></i> Añadir precio'; btn.classList.remove("btn-success"); }, 1500);
+  render();
+}
+
+function renderHistory() {
+  const el = document.getElementById("history-list");
+  if (!data.entries.length) { el.innerHTML = '<p style="font-size:14px;color:var(--text2)">Sin entradas todavía.</p>'; return; }
+  el.innerHTML = data.entries.map(e => {
+    const promo = promoLabel(e);
+    const hasDiscount = e.promo && e.promo !== "none";
+    return `<div class="history-row">
+      <div class="flex items-center gap8">
+        <span style="font-size:18px">${getEmoji(e.product)}</span>
+        <div>
+          <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px">
+            ${e.product} · ${e.store}
+            ${promo ? `<span class="badge badge-warn">${promo}</span>` : ""}
+          </div>
+          <div style="font-size:12px;color:var(--text2)">${e.date}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap8">
+        <div class="text-right">
+          ${hasDiscount ? `<div class="price-old">${e.price.toFixed(2)} €</div>` : ""}
+          <span class="price-new ${hasDiscount?"price-warn":""}">${effectivePrice(e).toFixed(2)} €/${e.unit}</span>
+        </div>
+        <button class="btn-icon" onclick="deleteEntry(${e.id})"><i class="ti ti-trash" style="font-size:16px"></i></button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function deleteEntry(id) {
+  data.entries = data.entries.filter(e => e.id !== id);
+  save(); render();
+}
+
+function renderManage() {
+  // Products
+  const pel = document.getElementById("manage-products");
+  pel.innerHTML = data.products.map(p => {
+    if (editingProduct === p) {
+      return `<div class="edit-row">
+        <input id="edit-product-input" value="${p}" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')confirmRenameProduct();if(event.key==='Escape')cancelEdit()">
+        <button class="btn btn-success" style="padding:0 8px" onclick="confirmRenameProduct()"><i class="ti ti-check"></i></button>
+        <button class="btn" style="padding:0 8px" onclick="cancelEdit()"><i class="ti ti-x"></i></button>
+      </div>`;
+    }
+    return `<div class="manage-row">
+      <span style="font-size:14px">${getEmoji(p)} ${p}</span>
+      <div class="flex gap8">
+        <button class="btn-icon" onclick="startEditProduct('${p.replace(/'/g,"\\'")}')"><i class="ti ti-pencil" style="font-size:13px"></i></button>
+        <button class="btn-icon" onclick="deleteProduct('${p.replace(/'/g,"\\'")}')"><i class="ti ti-trash" style="font-size:13px"></i></button>
+      </div>
+    </div>`;
+  }).join("");
+
+  // Stores
+  const sel = document.getElementById("manage-stores");
+  sel.innerHTML = data.stores.map(s => {
+    if (editingStore === s) {
+      return `<div class="edit-row">
+        <input id="edit-store-input" value="${s}" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')confirmRenameStore();if(event.key==='Escape')cancelEdit()">
+        <button class="btn btn-success" style="padding:0 8px" onclick="confirmRenameStore()"><i class="ti ti-check"></i></button>
+        <button class="btn" style="padding:0 8px" onclick="cancelEdit()"><i class="ti ti-x"></i></button>
+      </div>`;
+    }
+    return `<div class="manage-row">
+      <span style="font-size:14px">🏪 ${s}</span>
+      <div class="flex gap8">
+        <button class="btn-icon" onclick="startEditStore('${s.replace(/'/g,"\\'")}')"><i class="ti ti-pencil" style="font-size:13px"></i></button>
+        <button class="btn-icon" onclick="deleteStore('${s.replace(/'/g,"\\'")}')"><i class="ti ti-trash" style="font-size:13px"></i></button>
+      </div>
+    </div>`;
+  }).join("");
+
+  if (editingProduct) setTimeout(() => document.getElementById("edit-product-input")?.focus(), 50);
+  if (editingStore) setTimeout(() => document.getElementById("edit-store-input")?.focus(), 50);
+}
+
+function startEditProduct(p) { editingProduct = p; editingStore = null; renderManage(); }
+function startEditStore(s) { editingStore = s; editingProduct = null; renderManage(); }
+function cancelEdit() { editingProduct = null; editingStore = null; renderManage(); }
+
+function confirmRenameProduct() {
+  const val = document.getElementById("edit-product-input").value.trim();
+  if (!val || (val !== editingProduct && data.products.includes(val))) return;
+  const old = editingProduct;
+  data.products = data.products.map(p => p === old ? val : p);
+  data.entries = data.entries.map(e => e.product === old ? {...e, product: val} : e);
+  if (selectedProduct === old) selectedProduct = val;
+  editingProduct = null;
+  save(); render();
+}
+
+function confirmRenameStore() {
+  const val = document.getElementById("edit-store-input").value.trim();
+  if (!val || (val !== editingStore && data.stores.includes(val))) return;
+  const old = editingStore;
+  data.stores = data.stores.map(s => s === old ? val : s);
+  data.entries = data.entries.map(e => e.store === old ? {...e, store: val} : e);
+  editingStore = null;
+  save(); render();
+}
+
+function addProduct() {
+  const input = document.getElementById("new-product");
+  const name = input.value.trim();
+  if (!name || data.products.includes(name)) return;
+  data.products.push(name);
+  input.value = "";
+  save(); render();
+}
+
+function deleteProduct(p) {
+  if (!confirm(`¿Eliminar "${p}" y todos sus precios?`)) return;
+  data.products = data.products.filter(x => x !== p);
+  data.entries = data.entries.filter(e => e.product !== p);
+  if (selectedProduct === p) selectedProduct = null;
+  save(); render();
+}
+
+function addStore() {
+  const input = document.getElementById("new-store");
+  const name = input.value.trim();
+  if (!name || data.stores.includes(name)) return;
+  data.stores.push(name);
+  input.value = "";
+  save(); render();
+}
+
+function deleteStore(s) {
+  if (!confirm(`¿Eliminar "${s}" y todos sus precios?`)) return;
+  data.stores = data.stores.filter(x => x !== s);
+  data.entries = data.entries.filter(e => e.store !== s);
+  save(); render();
+}
+
+// Init
+load();
+render();
+</script>
+</body>
+</html>
