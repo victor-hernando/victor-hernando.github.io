@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparador de precios</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #fafaf9;
+    --text: #1c1917; --text2: #57534e; --text3: #a8a29e;
+    --border: #e7e5e4; --border2: #d6d3d1;
+    --success-bg: #f0fdf4; --success: #16a34a; --success-border: #bbf7d0;
+    --warn-bg: #fffbeb; --warn: #d97706; --warn-border: #fde68a;
+    --radius: 8px; --radius-sm: 5px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1917; --bg2: #292524; --bg3: #1c1917;
+      --text: #fafaf9; --text2: #a8a29e; --text3: #57534e;
+      --border: #292524; --border2: #3c3836;
+      --success-bg: #052e16; --success: #4ade80; --success-border: #166534;
+      --warn-bg: #1c1400; --warn: #fbbf24; --warn-border: #92400e;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; font-size: 15px; }
+  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+  /* Sync bar */
+  .sync-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; font-size: 13px; color: var(--text2); }
+  .sync-bar .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; transition: background .3s; }
+  .sync-bar .dot.ok { background: var(--success); }
+  .sync-bar .dot.loading { background: var(--warn); animation: pulse 1s infinite; }
+  .sync-bar .dot.error { background: #ef4444; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .sync-bar .sync-btn { margin-left: auto; padding: 4px 10px; font-size: 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .header-title { font-size: 18px; font-weight: 600; }
+  .header-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
+  .tab { padding: 6px 12px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; background: transparent; color: var(--text2); white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+  .tab.active { background: var(--bg2); border-color: var(--border2); color: var(--text); font-weight: 500; }
+
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; }
+  .card-body { border-top: 1px solid var(--border); padding: 12px 16px; }
+
+  .store-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .store-row:last-child { border-bottom: none; }
+
+  .badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; }
+  .badge-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+  .badge-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+
+  .form-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+  input, select { width: 100%; padding: 7px 10px; font-size: 14px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg2); color: var(--text); outline: none; font-family: inherit; }
+  input:focus, select:focus { border-color: var(--text3); }
+  .form-row-auto { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; }
+  .mb12 { margin-bottom: 12px; }
+
+  .btn { padding: 8px 14px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg2); color: var(--text); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
+  .btn-primary { width: 100%; justify-content: center; padding: 10px; font-size: 14px; font-weight: 500; }
+  .btn-success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+  .btn-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
+  .btn-icon { padding: 4px 6px; background: none; border: none; color: var(--text3); cursor: pointer; }
+
+  .promo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 5px 10px; font-size: 12px; border-radius: 99px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; }
+  .chip.active { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); font-weight: 500; }
+
+  .search-wrap { position: relative; }
+  .search-wrap .ti-search { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; pointer-events: none; }
+  .search-wrap input { padding-left: 30px; }
+  .dropdown { background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm); margin-top: 4px; overflow: hidden; max-height: 200px; overflow-y: auto; }
+  .dropdown-item { padding: 8px 12px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .dropdown-item:hover { background: var(--bg2); }
+  .dropdown-empty { padding: 8px 12px; font-size: 13px; color: var(--text3); }
+
+  .manage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .manage-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .manage-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .edit-row { display: flex; gap: 4px; padding: 4px 0; }
+  .edit-row input { font-size: 13px; }
+
+  .savings-box { margin-top: 10px; padding: 10px; background: var(--bg2); border-radius: var(--radius-sm); font-size: 12px; color: var(--text2); }
+  .history-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 6px; }
+  .price-old { font-size: 11px; color: var(--text3); text-decoration: line-through; }
+  .price-warn { color: var(--warn); }
+
+  .hidden { display: none !important; }
+  .flex { display: flex; } .gap8 { gap: 8px; } .items-center { align-items: center; } .flex-wrap { flex-wrap: wrap; } .text-right { text-align: right; } .text-sm { font-size: 12px; color: var(--text2); } .mt8 { margin-top: 8px; }
+
+  @media (max-width: 400px) { .manage-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <span style="font-size:24px">🧺</span>
+    <div>
+      <div class="header-title">Comparador de precios</div>
+      <div class="header-sub" id="header-sub">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- Sync bar -->
+  <div class="sync-bar">
+    <div class="dot loading" id="sync-dot"></div>
+    <span id="sync-label">Conectando con Firebase...</span>
+    <button class="sync-btn" onclick="saveToFirebase()"><i class="ti ti-cloud-upload"></i> Guardar</button>
+    <button class="sync-btn" onclick="loadFromFirebase()"><i class="ti ti-refresh"></i> Recargar</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showView('compare')" id="tab-compare"><i class="ti ti-chart-bar"></i> Comparar</button>
+    <button class="tab" onclick="showView('add')" id="tab-add"><i class="ti ti-plus"></i> Añadir</button>
+    <button class="tab" onclick="showView('history')" id="tab-history"><i class="ti ti-clock"></i> Historial</button>
+    <button class="tab" onclick="showView('manage')" id="tab-manage"><i class="ti ti-settings"></i> Gestionar</button>
+  </div>
+
+  <div id="view-compare"><div id="compare-list"></div></div>
+  <div id="view-add" class="hidden">
+    <div class="form-card">
+      <div class="mb12">
+        <label>Producto</label>
+        <div class="search-wrap">
+          <i class="ti ti-search"></i>
+          <input id="product-search" placeholder="Buscar producto..." oninput="onProductSearch()" onfocus="onProductFocus()">
+        </div>
+        <div id="product-dropdown" class="dropdown hidden"></div>
+      </div>
+      <div class="mb12">
+        <label>Tienda</label>
+        <select id="form-store"></select>
+      </div>
+      <div class="form-row-auto mb12">
+        <div><label>Precio (€)</label><input type="number" id="form-price" min="0" step="0.01" placeholder="0.00" oninput="updateEffective()"></div>
+        <div><label>Por</label><select id="form-unit" style="width:75px"><option>kg</option><option>ud</option><option>l</option><option>100g</option><option>pack</option></select></div>
+      </div>
+      <div class="mb12">
+        <label>Promoción</label>
+        <div class="promo-chips" id="promo-chips">
+          <span class="chip active" data-promo="none" onclick="selectPromo(this)">Sin promoción</span>
+          <span class="chip" data-promo="2x1" onclick="selectPromo(this)">2x1</span>
+          <span class="chip" data-promo="3x2" onclick="selectPromo(this)">3x2</span>
+          <span class="chip" data-promo="pct" onclick="selectPromo(this)">% descuento</span>
+          <span class="chip" data-promo="2nd_half" onclick="selectPromo(this)">2ª ud. 50%</span>
+          <span class="chip" data-promo="custom" onclick="selectPromo(this)">Otra...</span>
+        </div>
+        <div id="promo-pct-wrap" class="hidden mt8"><input type="number" id="promo-pct" min="1" max="99" placeholder="Ej: 20 (para 20%)" style="width:180px" oninput="updateEffective()"></div>
+        <div id="promo-custom-wrap" class="hidden mt8"><input type="text" id="promo-custom" placeholder="Describe la promoción..."></div>
+        <div id="effective-price" class="text-sm mt8 hidden"></div>
+      </div>
+      <button class="btn btn-primary" id="add-btn" onclick="addEntry()"><i class="ti ti-plus"></i> Añadir precio</button>
+    </div>
+  </div>
+  <div id="view-history" class="hidden"><div id="history-list"></div></div>
+  <div id="view-manage" class="hidden">
+    <div class="manage-grid">
+      <div class="manage-card">
+        <div style="font-weight:500;font-size:14px;margin-bottom:12px">Productos</div>
+        <div id="manage-products"></div>
+        <div class="flex gap8 mt8"><input id="new-product" placeholder="Nuevo producto" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addProduct()"><button class="btn" onclick="addProduct()"><i class="ti ti-plus"></i></button></div>
+      </div>
+      <div class="manage-card">
+        <div style="font-weight:500;font-size:14px;margin-bottom:12px">Tiendas</div>
+        <div id="manage-stores"></div>
+        <div class="flex gap8 mt8"><input id="new-store" placeholder="Nueva tienda" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addStore()"><button class="btn" onclick="addStore()"><i class="ti ti-plus"></i></button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAWAEJahdFnVkQQk7whGWbGru3lus_f4sE",
+    authDomain: "test1-df122.firebaseapp.com",
+    databaseURL: "https://test1-df122-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "test1-df122",
+    storageBucket: "test1-df122.firebasestorage.app",
+    messagingSenderId: "745442720279",
+    appId: "1:745442720279:web:43eff7bb8a3a4abd357a52",
+    measurementId: "G-ZJ8TSC1WJ4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  // Clave separada del proyecto sharedIdeas — no interfiere con "info" ni "testInfo"
+  const dbRef = ref(db, "comparador-precios");
+
+  function setSyncState(state, text) {
+    const dot = document.getElementById("sync-dot");
+    const label = document.getElementById("sync-label");
+    dot.className = "dot " + state;
+    label.textContent = text;
+  }
+
+  window.saveToFirebase = async function() {
+    setSyncState("loading", "Guardando...");
+    try {
+      await set(dbRef, window._appData);
+      setSyncState("ok", "Guardado en Firebase · " + new Date().toLocaleTimeString("es-ES"));
+    } catch(e) {
+      setSyncState("error", "Error al guardar: " + e.message);
+    }
+  };
+
+  window.loadFromFirebase = async function() {
+    setSyncState("loading", "Cargando desde Firebase...");
+    try {
+      const snapshot = await get(dbRef);
+      if (snapshot.exists()) {
+        window._appData = snapshot.val();
+        setSyncState("ok", "Datos cargados · " + new Date().toLocaleTimeString("es-ES"));
+      } else {
+        setSyncState("ok", "Sin datos en Firebase — usando datos locales");
+      }
+      render();
+    } catch(e) {
+      setSyncState("error", "Error al cargar: " + e.message);
+    }
+  };
+
+  // Carga inicial
+  window._appData = {
+    products: ["Cebolla", "Pan", "Yogures"],
+    stores: ["Mercadona", "Lidl", "Carrefour"],
+    entries: []
+  };
+
+  // Intenta cargar desde localStorage como fallback offline
+  try {
+    const local = localStorage.getItem("comparador-precios-local");
+    if (local) window._appData = JSON.parse(local);
+  } catch {}
+
+  // Luego carga desde Firebase (prevalece sobre local)
+  window.loadFromFirebase();
+
+  // Guarda en localStorage cada vez que cambien los datos (fallback offline)
+  window._saveLocal = function() {
+    try { localStorage.setItem("comparador-precios-local", JSON.stringify(window._appData)); } catch {}
+  };
+</script>
+
+<script>
+const EMOJIS = { cebolla:"🧅", pan:"🍞", yogur:"🥛", leche:"🥛", tomate:"🍅", patata:"🥔", manzana:"🍎", arroz:"🍚", pasta:"🍝", huevo:"🥚", pollo:"🍗", aceite:"🫙", mantequilla:"🧈", queso:"🧀" };
+const PROMOS = [{id:"none",label:"Sin promoción"},{id:"2x1",label:"2x1"},{id:"3x2",label:"3x2"},{id:"pct",label:"% descuento"},{id:"2nd_half",label:"2ª ud. 50%"},{id:"custom",label:"Otra..."}];
+
+function getEmoji(name) {
+  const l = name.toLowerCase();
+  for (const [k,v] of Object.entries(EMOJIS)) if (l.includes(k)) return v;
+  return "🛒";
+}
+function effectivePrice(e) {
+  if (!e.promo || e.promo==="none") return e.price;
+  if (e.promo==="2x1") return e.price/2;
+  if (e.promo==="3x2") return e.price*2/3;
+  if (e.promo==="pct" && e.promoPct) return e.price*(1-e.promoPct/100);
+  if (e.promo==="2nd_half") return e.price*0.75;
+  return e.price;
+}
+function promoLabel(e) {
+  if (!e.promo||e.promo==="none") return null;
+  if (e.promo==="2x1") return "2x1";
+  if (e.promo==="3x2") return "3x2";
+  if (e.promo==="pct") return `-${e.promoPct}%`;
+  if (e.promo==="2nd_half") return "2ª ud. 50%";
+  if (e.promo==="custom") return e.promoCustom||"Promo";
+  return null;
+}
+
+let currentView="compare", selectedPromo="none", selectedProduct=null, editingProduct=null, editingStore=null, formProduct="";
+
+function data() { return window._appData; }
+function mutate(fn) { fn(window._appData); window._saveLocal && window._saveLocal(); render(); }
+
+function showView(v) {
+  currentView=v;
+  ["compare","add","history","manage"].forEach(id => {
+    document.getElementById("view-"+id).classList.toggle("hidden", id!==v);
+    document.getElementById("tab-"+id).classList.toggle("active", id===v);
+  });
+  render();
+}
+
+function getStoreLatest(product) {
+  const rel = data().entries.filter(e=>e.product===product);
+  const byStore={};
+  rel.forEach(e=>{ if(!byStore[e.store]||e.id>byStore[e.store].id) byStore[e.store]=e; });
+  return Object.values(byStore).sort((a,b)=>effectivePrice(a)-effectivePrice(b));
+}
+
+function render() {
+  const d = data();
+  document.getElementById("header-sub").textContent = d.products.length+" productos · "+d.stores.length+" tiendas";
+  if (currentView==="compare") renderCompare();
+  if (currentView==="add") renderAdd();
+  if (currentView==="history") renderHistory();
+  if (currentView==="manage") renderManage();
+}
+
+function renderCompare() {
+  const el=document.getElementById("compare-list");
+  const d=data();
+  if(!d.products.length){el.innerHTML='<p style="color:var(--text2);font-size:14px">Añade productos en "Gestionar".</p>';return;}
+  el.innerHTML=d.products.map(product=>{
+    const stores=getStoreLatest(product), best=stores[0], isOpen=selectedProduct===product;
+    const bestText=best?`Mejor: <span style="color:var(--success);font-weight:500">${best.store} — ${effectivePrice(best).toFixed(2)} €/${best.unit}</span>${promoLabel(best)?` <span class="badge badge-warn">${promoLabel(best)}</span>`:""}`:`<span style="color:var(--text3)">Sin precios aún</span>`;
+    let body="";
+    if(isOpen){
+      if(!stores.length){body=`<div class="card-body"><p style="font-size:13px;color:var(--text2)">Sin precios aún.</p></div>`;}
+      else{
+        const rows=stores.map((e,i)=>{
+          const isBest=i===0,effP=effectivePrice(e),diff=stores.length>1?((effP-effectivePrice(stores[0]))/effectivePrice(stores[0])*100).toFixed(0):0,promo=promoLabel(e),hasDiscount=e.promo&&e.promo!=="none";
+          return `<div class="store-row"><div class="flex items-center flex-wrap gap8">${isBest?'<span class="badge badge-success">mejor</span>':""}${promo?`<span class="badge badge-warn">${promo}</span>`:""}<span style="font-size:14px">${e.store}</span><span style="font-size:12px;color:var(--text3)">${e.date}</span></div><div class="flex items-center gap8">${!isBest&&stores.length>1?`<span style="font-size:12px;color:var(--text2)">+${diff}%</span>`:""}<div class="text-right">${hasDiscount?`<div class="price-old">${e.price.toFixed(2)} €</div>`:""}<span style="font-weight:500;font-size:15px;${hasDiscount?"color:var(--warn)":""}">${effP.toFixed(2)} €</span><span style="font-size:12px;color:var(--text2)">/${e.unit}</span></div></div></div>`;
+        }).join("");
+        const savings=stores.length>1?`<div class="savings-box">Ahorro máximo: <strong>${(effectivePrice(stores[stores.length-1])-effectivePrice(stores[0])).toFixed(2)} € por ${stores[0].unit}</strong> comprando en ${stores[0].store}</div>`:"";
+        body=`<div class="card-body">${rows}${savings}</div>`;
+      }
+    }
+    return `<div class="card"><div class="card-header" onclick="toggleProduct('${product.replace(/'/g,"\\'")}')"><div class="flex items-center gap8"><span style="font-size:20px">${getEmoji(product)}</span><div><div style="font-weight:500;font-size:15px">${product}</div><div style="font-size:12px;color:var(--text2)">${bestText}</div></div></div><i class="ti ${isOpen?"ti-chevron-up":"ti-chevron-down"}" style="color:var(--text2)"></i></div>${body}</div>`;
+  }).join("");
+}
+function toggleProduct(p){selectedProduct=selectedProduct===p?null:p;renderCompare();}
+
+function renderAdd() {
+  const sel=document.getElementById("form-store");
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Selecciona...</option>'+data().stores.map(s=>`<option value="${s}"${s===prev?" selected":""}>${s}</option>`).join("");
+  if(formProduct) document.getElementById("product-search").value=formProduct;
+  updateEffective();
+}
+
+function onProductSearch(){formProduct="";showProductDropdown();}
+function onProductFocus(){if(!formProduct)showProductDropdown();}
+function showProductDropdown(){
+  const q=document.getElementById("product-search").value.toLowerCase();
+  const filtered=data().products.filter(p=>p.toLowerCase().includes(q));
+  const dd=document.getElementById("product-dropdown");
+  dd.innerHTML=filtered.length?filtered.map(p=>`<div class="dropdown-item" onclick="selectProductFromDrop('${p.replace(/'/g,"\\'")}')">${getEmoji(p)} ${p}</div>`).join(""):'<div class="dropdown-empty">Sin resultados</div>';
+  dd.classList.remove("hidden");
+}
+function selectProductFromDrop(p){formProduct=p;document.getElementById("product-search").value=p;document.getElementById("product-dropdown").classList.add("hidden");}
+document.addEventListener("click",e=>{const dd=document.getElementById("product-dropdown");if(!dd)return;if(!dd.contains(e.target)&&e.target.id!=="product-search")dd.classList.add("hidden");});
+
+function selectPromo(el){
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active"); selectedPromo=el.dataset.promo;
+  document.getElementById("promo-pct-wrap").classList.toggle("hidden",selectedPromo!=="pct");
+  document.getElementById("promo-custom-wrap").classList.toggle("hidden",selectedPromo!=="custom");
+  updateEffective();
+}
+function updateEffective(){
+  const price=parseFloat(document.getElementById("form-price").value);
+  const pct=parseFloat(document.getElementById("promo-pct")?.value);
+  const unit=document.getElementById("form-unit").value;
+  const el=document.getElementById("effective-price");
+  if(selectedPromo&&selectedPromo!=="none"&&price){el.textContent=`Precio efectivo: ${effectivePrice({price,promo:selectedPromo,promoPct:pct}).toFixed(2)} €/${unit}`;el.classList.remove("hidden");}
+  else el.classList.add("hidden");
+}
+
+function addEntry(){
+  const price=parseFloat(document.getElementById("form-price").value);
+  const store=document.getElementById("form-store").value;
+  const unit=document.getElementById("form-unit").value;
+  const promoPct=parseFloat(document.getElementById("promo-pct")?.value)||null;
+  const promoCustom=document.getElementById("promo-custom")?.value||null;
+  if(!formProduct||!store||!price)return;
+  const entry={id:Date.now(),product:formProduct,store,price,unit,promo:selectedPromo,promoPct,promoCustom,date:new Date().toLocaleDateString("es-ES")};
+  mutate(d=>{d.entries.unshift(entry);});
+  document.getElementById("form-price").value="";
+  document.getElementById("product-search").value=""; formProduct="";
+  selectedPromo="none";
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active",c.dataset.promo==="none"));
+  document.getElementById("promo-pct-wrap").classList.add("hidden");
+  document.getElementById("promo-custom-wrap").classList.add("hidden");
+  document.getElementById("effective-price").classList.add("hidden");
+  const btn=document.getElementById("add-btn");
+  btn.innerHTML='<i class="ti ti-check"></i> ¡Guardado!'; btn.classList.add("btn-success");
+  setTimeout(()=>{btn.innerHTML='<i class="ti ti-plus"></i> Añadir precio';btn.classList.remove("btn-success");},1500);
+  // Auto-save to Firebase
+  saveToFirebase();
+}
+
+function renderHistory(){
+  const el=document.getElementById("history-list");
+  const d=data();
+  if(!d.entries.length){el.innerHTML='<p style="font-size:14px;color:var(--text2)">Sin entradas todavía.</p>';return;}
+  el.innerHTML=d.entries.map(e=>{
+    const promo=promoLabel(e),hasDiscount=e.promo&&e.promo!=="none";
+    return `<div class="history-row"><div class="flex items-center gap8"><span style="font-size:18px">${getEmoji(e.product)}</span><div><div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px">${e.product} · ${e.store}${promo?`<span class="badge badge-warn">${promo}</span>`:""}</div><div style="font-size:12px;color:var(--text2)">${e.date}</div></div></div><div class="flex items-center gap8"><div class="text-right">${hasDiscount?`<div class="price-old">${e.price.toFixed(2)} €</div>`:""}<span style="font-size:14px;font-weight:500;${hasDiscount?"color:var(--warn)":""}">${effectivePrice(e).toFixed(2)} €/${e.unit}</span></div><button class="btn-icon" onclick="deleteEntry(${e.id})"><i class="ti ti-trash" style="font-size:16px"></i></button></div></div>`;
+  }).join("");
+}
+function deleteEntry(id){mutate(d=>{d.entries=d.entries.filter(e=>e.id!==id);});saveToFirebase();}
+
+function renderManage(){
+  const d=data();
+  document.getElementById("manage-products").innerHTML=d.products.map(p=>{
+    if(editingProduct===p)return`<div class="edit-row"><input id="edit-product-input" value="${p}" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')confirmRenameProduct();if(event.key==='Escape')cancelEdit()"><button class="btn btn-success" style="padding:0 8px" onclick="confirmRenameProduct()"><i class="ti ti-check"></i></button><button class="btn" style="padding:0 8px" onclick="cancelEdit()"><i class="ti ti-x"></i></button></div>`;
+    return`<div class="manage-row"><span style="font-size:14px">${getEmoji(p)} ${p}</span><div class="flex gap8"><button class="btn-icon" onclick="startEditProduct('${p.replace(/'/g,"\\'")}')"><i class="ti ti-pencil" style="font-size:13px"></i></button><button class="btn-icon" onclick="deleteProduct('${p.replace(/'/g,"\\'")}')"><i class="ti ti-trash" style="font-size:13px"></i></button></div></div>`;
+  }).join("");
+  document.getElementById("manage-stores").innerHTML=d.stores.map(s=>{
+    if(editingStore===s)return`<div class="edit-row"><input id="edit-store-input" value="${s}" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')confirmRenameStore();if(event.key==='Escape')cancelEdit()"><button class="btn btn-success" style="padding:0 8px" onclick="confirmRenameStore()"><i class="ti ti-check"></i></button><button class="btn" style="padding:0 8px" onclick="cancelEdit()"><i class="ti ti-x"></i></button></div>`;
+    return`<div class="manage-row"><span style="font-size:14px">🏪 ${s}</span><div class="flex gap8"><button class="btn-icon" onclick="startEditStore('${s.replace(/'/g,"\\'")}')"><i class="ti ti-pencil" style="font-size:13px"></i></button><button class="btn-icon" onclick="deleteStore('${s.replace(/'/g,"\\'")}')"><i class="ti ti-trash" style="font-size:13px"></i></button></div></div>`;
+  }).join("");
+  if(editingProduct)setTimeout(()=>document.getElementById("edit-product-input")?.focus(),50);
+  if(editingStore)setTimeout(()=>document.getElementById("edit-store-input")?.focus(),50);
+}
+
+function startEditProduct(p){editingProduct=p;editingStore=null;renderManage();}
+function startEditStore(s){editingStore=s;editingProduct=null;renderManage();}
+function cancelEdit(){editingProduct=null;editingStore=null;renderManage();}
+function confirmRenameProduct(){
+  const val=document.getElementById("edit-product-input").value.trim();
+  if(!val||(val!==editingProduct&&data().products.includes(val)))return;
+  const old=editingProduct;
+  mutate(d=>{d.products=d.products.map(p=>p===old?val:p);d.entries=d.entries.map(e=>e.product===old?{...e,product:val}:e);});
+  if(selectedProduct===old)selectedProduct=val;
+  editingProduct=null; saveToFirebase();
+}
+function confirmRenameStore(){
+  const val=document.getElementById("edit-store-input").value.trim();
+  if(!val||(val!==editingStore&&data().stores.includes(val)))return;
+  const old=editingStore;
+  mutate(d=>{d.stores=d.stores.map(s=>s===old?val:s);d.entries=d.entries.map(e=>e.store===old?{...e,store:val}:e);});
+  editingStore=null; saveToFirebase();
+}
+function addProduct(){
+  const input=document.getElementById("new-product"),name=input.value.trim();
+  if(!name||data().products.includes(name))return;
+  mutate(d=>{d.products.push(name);});input.value=""; saveToFirebase();
+}
+function deleteProduct(p){
+  if(!confirm(`¿Eliminar "${p}" y todos sus precios?`))return;
+  mutate(d=>{d.products=d.products.filter(x=>x!==p);d.entries=d.entries.filter(e=>e.product!==p);});
+  if(selectedProduct===p)selectedProduct=null; saveToFirebase();
+}
+function addStore(){
+  const input=document.getElementById("new-store"),name=input.value.trim();
+  if(!name||data().stores.includes(name))return;
+  mutate(d=>{d.stores.push(name);});input.value=""; saveToFirebase();
+}
+function deleteStore(s){
+  if(!confirm(`¿Eliminar "${s}" y todos sus precios?`))return;
+  mutate(d=>{d.stores=d.stores.filter(x=>x!==s);d.entries=d.entries.filter(e=>e.store!==s);});
+  saveToFirebase();
+}
+</script>
+</body>
+</html>
