@@ -213,19 +213,28 @@
     }
   };
 
+  function normalizeData(raw) {
+    // Firebase convierte arrays en objetos {0:...,1:...} al guardar — los reconvertimos
+    if (!raw) return null;
+    const toArr = v => !v ? [] : Array.isArray(v) ? v : Object.values(v);
+    return { products: toArr(raw.products), stores: toArr(raw.stores), entries: toArr(raw.entries) };
+  }
+
   window.loadFromFirebase = async function() {
     setSyncState("loading", "Cargando desde Firebase...");
     try {
       const snapshot = await get(dbRef);
       if (snapshot.exists()) {
-        window._appData = snapshot.val();
+        const normalized = normalizeData(snapshot.val());
+        if (normalized) window._appData = normalized;
         setSyncState("ok", "Datos cargados · " + new Date().toLocaleTimeString("es-ES"));
       } else {
-        setSyncState("ok", "Sin datos en Firebase — usando datos locales");
+        setSyncState("ok", "Sin datos aún en Firebase — puedes empezar a añadir precios");
       }
       render();
     } catch(e) {
       setSyncState("error", "Error al cargar: " + e.message);
+      render();
     }
   };
 
