@@ -277,6 +277,20 @@ function effectivePrice(e) {
   if (e.promo==="2nd_half") return e.price*0.75;
   return e.price;
 }
+// Convierte el precio efectivo a una base comparable: €/kg para peso, €/l para volumen.
+// "ud" y "pack" no son convertibles entre sí, se mantienen como están.
+const UNIT_FACTOR = { "kg": 1, "100g": 10, "l": 1, "ud": 1, "pack": 1 };
+const UNIT_GROUP = { "kg": "weight", "100g": "weight", "l": "volume", "ud": "count", "pack": "count" };
+function comparablePrice(e) {
+  const factor = UNIT_FACTOR[e.unit] ?? 1;
+  return effectivePrice(e) * factor;
+}
+function comparableUnitLabel(unit) {
+  const group = UNIT_GROUP[unit];
+  if (group === "weight") return "kg";
+  if (group === "volume") return "l";
+  return unit;
+}
 function promoLabel(e) {
   if (!e.promo||e.promo==="none") return null;
   if (e.promo==="2x1") return "2x1";
@@ -305,8 +319,10 @@ function getStoreLatest(product) {
   const rel = data().entries.filter(e=>e.product===product);
   const byStore={};
   rel.forEach(e=>{ if(!byStore[e.store]||e.id>byStore[e.store].id) byStore[e.store]=e; });
-  return Object.values(byStore).sort((a,b)=>effectivePrice(a)-effectivePrice(b));
+  // Ordena por precio comparable (normalizado por unidad), no por precio bruto
+  return Object.values(byStore).sort((a,b)=>comparablePrice(a)-comparablePrice(b));
 }
+
 
 function render() {
   const d = data();
@@ -329,10 +345,13 @@ function renderCompare() {
       if(!stores.length){body=`<div class="card-body"><p style="font-size:13px;color:var(--text2)">Sin precios aún.</p></div>`;}
       else{
         const rows=stores.map((e,i)=>{
-          const isBest=i===0,effP=effectivePrice(e),diff=stores.length>1?((effP-effectivePrice(stores[0]))/effectivePrice(stores[0])*100).toFixed(0):0,promo=promoLabel(e),hasDiscount=e.promo&&e.promo!=="none";
-          return `<div class="store-row"><div class="flex items-center flex-wrap gap8">${isBest?'<span class="badge badge-success">mejor</span>':""}${promo?`<span class="badge badge-warn">${promo}</span>`:""}<span style="font-size:14px">${e.store}</span><span style="font-size:12px;color:var(--text3)">${e.date}</span></div><div class="flex items-center gap8">${!isBest&&stores.length>1?`<span style="font-size:12px;color:var(--text2)">+${diff}%</span>`:""}<div class="text-right">${hasDiscount?`<div class="price-old">${e.price.toFixed(2)} €</div>`:""}<span style="font-weight:500;font-size:15px;${hasDiscount?"color:var(--warn)":""}">${effP.toFixed(2)} €</span><span style="font-size:12px;color:var(--text2)">/${e.unit}</span></div></div></div>`;
+          const isBest=i===0,effP=effectivePrice(e),compP=comparablePrice(e),diff=stores.length>1?((compP-comparablePrice(stores[0]))/comparablePrice(stores[0])*100).toFixed(0):0,promo=promoLabel(e),hasDiscount=e.promo&&e.promo!=="none";
+          const equivHtml = (UNIT_FACTOR[e.unit] && UNIT_FACTOR[e.unit]!==1) ? `<div style="font-size:11px;color:var(--text3)">≈ ${compP.toFixed(2)} €/${comparableUnitLabel(e.unit)}</div>` : "";
+          return `<div class="store-row"><div class="flex items-center flex-wrap gap8">${isBest?'<span class="badge badge-success">mejor</span>':""}${promo?`<span class="badge badge-warn">${promo}</span>`:""}<span style="font-size:14px">${e.store}</span><span style="font-size:12px;color:var(--text3)">${e.date}</span></div><div class="flex items-center gap8">${!isBest&&stores.length>1?`<span style="font-size:12px;color:var(--text2)">+${diff}%</span>`:""}<div class="text-right">${hasDiscount?`<div class="price-old">${e.price.toFixed(2)} €</div>`:""}<span style="font-weight:500;font-size:15px;${hasDiscount?"color:var(--warn)":""}">${effP.toFixed(2)} €</span><span style="font-size:12px;color:var(--text2)">/${e.unit}</span>${equivHtml}</div></div></div>`;
         }).join("");
-        const savings=stores.length>1?`<div class="savings-box">Ahorro máximo: <strong>${(effectivePrice(stores[stores.length-1])-effectivePrice(stores[0])).toFixed(2)} € por ${stores[0].unit}</strong> comprando en ${stores[0].store}</div>`:"";
+        const cheapUnitLabel=comparableUnitLabel(stores[0].unit);
+        const sameUnitGroup=stores.every(s=>comparableUnitLabel(s.unit)===cheapUnitLabel);
+        const savings=stores.length>1&&sameUnitGroup?`<div class="savings-box">Ahorro máximo: <strong>${(comparablePrice(stores[stores.length-1])-comparablePrice(stores[0])).toFixed(2)} €/${cheapUnitLabel}</strong> comprando en ${stores[0].store}</div>`:"";
         body=`<div class="card-body">${rows}${savings}</div>`;
       }
     }
