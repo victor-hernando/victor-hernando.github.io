@@ -3,116 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Comparador de precios</title>
+<title>PriceTracker</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #fafaf9;
-    --text: #1c1917; --text2: #57534e; --text3: #a8a29e;
-    --border: #e7e5e4; --border2: #d6d3d1;
-    --success-bg: #f0fdf4; --success: #16a34a; --success-border: #bbf7d0;
-    --warn-bg: #fffbeb; --warn: #d97706; --warn-border: #fde68a;
-    --radius: 8px; --radius-sm: 5px;
+    --bg:#ffffff; --bg2:#f5f5f4; --bg3:#fafaf9;
+    --text:#1c1917; --text2:#57534e; --text3:#a8a29e;
+    --border:#e7e5e4; --border2:#d6d3d1;
+    --success-bg:#f0fdf4; --success:#16a34a; --success-border:#bbf7d0;
+    --warn-bg:#fffbeb; --warn:#d97706; --warn-border:#fde68a;
+    --radius:8px; --radius-sm:5px;
   }
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme:dark) {
     :root {
-      --bg: #1c1917; --bg2: #292524; --bg3: #1c1917;
-      --text: #fafaf9; --text2: #a8a29e; --text3: #57534e;
-      --border: #292524; --border2: #3c3836;
-      --success-bg: #052e16; --success: #4ade80; --success-border: #166534;
-      --warn-bg: #1c1400; --warn: #fbbf24; --warn-border: #92400e;
+      --bg:#1c1917; --bg2:#292524; --bg3:#1c1917;
+      --text:#fafaf9; --text2:#a8a29e; --text3:#57534e;
+      --border:#292524; --border2:#3c3836;
+      --success-bg:#052e16; --success:#4ade80; --success-border:#166534;
+      --warn-bg:#1c1400; --warn:#fbbf24; --warn-border:#92400e;
     }
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; font-size: 15px; }
-  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
-
-  /* Sync bar */
-  .sync-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; font-size: 13px; color: var(--text2); }
-  .sync-bar .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; transition: background .3s; }
-  .sync-bar .dot.ok { background: var(--success); }
-  .sync-bar .dot.loading { background: var(--warn); animation: pulse 1s infinite; }
-  .sync-bar .dot.error { background: #ef4444; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg3); color:var(--text); min-height:100vh; font-size:15px; }
+  .container { max-width:600px; margin:0 auto; padding:16px; }
+  .sync-bar { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:16px; font-size:13px; color:var(--text2); }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--text3); flex-shrink:0; transition:background .3s; }
+  .dot.ok { background:var(--success); }
+  .dot.loading { background:var(--warn); animation:pulse 1s infinite; }
+  .dot.error { background:#ef4444; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-  .sync-bar .sync-btn { margin-left: auto; padding: 4px 10px; font-size: 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 4px; }
-
-  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-  .header-title { font-size: 18px; font-weight: 600; }
-  .header-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
-
-  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
-  .tab { padding: 6px 12px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; background: transparent; color: var(--text2); white-space: nowrap; display: flex; align-items: center; gap: 5px; }
-  .tab.active { background: var(--bg2); border-color: var(--border2); color: var(--text); font-weight: 500; }
-
-  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
-  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; }
-  .card-body { border-top: 1px solid var(--border); padding: 12px 16px; }
-
-  .store-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .store-row:last-child { border-bottom: none; }
-
-  .badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; }
-  .badge-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
-  .badge-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
-
-  .form-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
-  input, select { width: 100%; padding: 7px 10px; font-size: 14px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg2); color: var(--text); outline: none; font-family: inherit; }
-  input:focus, select:focus { border-color: var(--text3); }
-  .form-row-auto { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; }
-  .mb12 { margin-bottom: 12px; }
-
-  .btn { padding: 8px 14px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg2); color: var(--text); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
-  .btn-primary { width: 100%; justify-content: center; padding: 10px; font-size: 14px; font-weight: 500; }
-  .btn-success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
-  .btn-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
-  .btn-icon { padding: 4px 6px; background: none; border: none; color: var(--text3); cursor: pointer; }
-
-  .promo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { padding: 5px 10px; font-size: 12px; border-radius: 99px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; }
-  .chip.active { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); font-weight: 500; }
-
-  .search-wrap { position: relative; }
-  .search-wrap .ti-search { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; pointer-events: none; }
-  .search-wrap input { padding-left: 30px; }
-  .dropdown { background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm); margin-top: 4px; overflow: hidden; max-height: 200px; overflow-y: auto; }
-  .dropdown-item { padding: 8px 12px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
-  .dropdown-item:hover { background: var(--bg2); }
-  .dropdown-empty { padding: 8px 12px; font-size: 13px; color: var(--text3); }
-
-  .manage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .manage-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
-  .manage-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); }
-  .edit-row { display: flex; gap: 4px; padding: 4px 0; }
-  .edit-row input { font-size: 13px; }
-
-  .savings-box { margin-top: 10px; padding: 10px; background: var(--bg2); border-radius: var(--radius-sm); font-size: 12px; color: var(--text2); }
-  .history-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 6px; }
-  .price-old { font-size: 11px; color: var(--text3); text-decoration: line-through; }
-  .price-warn { color: var(--warn); }
-
-  .hidden { display: none !important; }
-  .flex { display: flex; } .gap8 { gap: 8px; } .items-center { align-items: center; } .flex-wrap { flex-wrap: wrap; } .text-right { text-align: right; } .text-sm { font-size: 12px; color: var(--text2); } .mt8 { margin-top: 8px; }
-
-  @media (max-width: 400px) { .manage-grid { grid-template-columns: 1fr; } }
+  .sync-btn { padding:4px 10px; font-size:12px; border:1px solid var(--border2); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); cursor:pointer; display:flex; align-items:center; gap:4px; }
+  .header { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .tabs { display:flex; gap:4px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto; }
+  .tab { padding:6px 12px; font-size:13px; border-radius:var(--radius-sm); border:1px solid transparent; cursor:pointer; background:transparent; color:var(--text2); white-space:nowrap; display:flex; align-items:center; gap:5px; }
+  .tab.active { background:var(--bg2); border-color:var(--border2); color:var(--text); font-weight:500; }
+  .card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; }
+  .card-body { border-top:1px solid var(--border); padding:12px 16px; }
+  .store-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+  .store-row:last-child { border-bottom:none; }
+  .badge { font-size:11px; padding:2px 7px; border-radius:99px; font-weight:500; }
+  .badge-success { background:var(--success-bg); color:var(--success); border:1px solid var(--success-border); }
+  .badge-warn { background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-border); }
+  .form-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
+  label { font-size:12px; color:var(--text2); display:block; margin-bottom:4px; }
+  input, select { width:100%; padding:7px 10px; font-size:14px; border:1px solid var(--border2); border-radius:var(--radius-sm); background:var(--bg2); color:var(--text); outline:none; font-family:inherit; }
+  input:focus, select:focus { border-color:var(--text3); }
+  .mb12 { margin-bottom:12px; }
+  .mt8 { margin-top:8px; }
+  .btn { padding:8px 14px; font-size:13px; border-radius:var(--radius-sm); border:1px solid var(--border2); background:var(--bg2); color:var(--text); cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:5px; }
+  .btn-primary { width:100%; justify-content:center; padding:10px; font-size:14px; font-weight:500; }
+  .btn-success { background:var(--success-bg); color:var(--success); border-color:var(--success-border); }
+  .btn-icon { padding:4px 6px; background:none; border:none; color:var(--text3); cursor:pointer; }
+  .promo-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { padding:5px 10px; font-size:12px; border-radius:99px; border:1px solid var(--border2); background:var(--bg2); color:var(--text2); cursor:pointer; }
+  .chip.active { background:var(--warn-bg); color:var(--warn); border-color:var(--warn-border); font-weight:500; }
+  .search-wrap { position:relative; }
+  .search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--text3); font-size:14px; pointer-events:none; }
+  .search-wrap input { padding-left:30px; }
+  .dropdown { background:var(--bg); border:1px solid var(--border2); border-radius:var(--radius-sm); margin-top:4px; overflow:hidden; max-height:200px; overflow-y:auto; }
+  .dropdown-item { padding:8px 12px; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+  .dropdown-item:hover { background:var(--bg2); }
+  .dropdown-empty { padding:8px 12px; font-size:13px; color:var(--text3); }
+  .manage-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .manage-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:14px; }
+  .manage-row { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); }
+  .edit-row { display:flex; gap:4px; padding:4px 0; }
+  .savings-box { margin-top:10px; padding:10px; background:var(--bg2); border-radius:var(--radius-sm); font-size:12px; color:var(--text2); }
+  .history-row { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:6px; }
+  .price-old { font-size:11px; color:var(--text3); text-decoration:line-through; }
+  .flex { display:flex; } .gap8 { gap:8px; } .items-center { align-items:center; } .flex-wrap { flex-wrap:wrap; } .text-right { text-align:right; }
+  .hidden { display:none !important; }
+  @media (max-width:400px) { .manage-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <div class="container">
-
   <div class="header">
     <span style="font-size:24px">🧺</span>
     <div>
-      <div class="header-title">Comparador de precios</div>
-      <div class="header-sub" id="header-sub">Cargando...</div>
+      <div style="font-size:18px;font-weight:600">PriceTracker</div>
+      <div style="font-size:12px;color:var(--text2)" id="header-sub">Cargando...</div>
     </div>
   </div>
 
-  <!-- Sync bar -->
   <div class="sync-bar">
     <div class="dot loading" id="sync-dot"></div>
-    <span id="sync-label">Conectando con Firebase...</span>
-    <button class="sync-btn" onclick="saveToFirebase()"><i class="ti ti-cloud-upload"></i> Guardar</button>
+    <span id="sync-label">Conectando...</span>
+    <button class="sync-btn" style="margin-left:auto" onclick="saveToFirebase()"><i class="ti ti-cloud-upload"></i> Guardar</button>
     <button class="sync-btn" onclick="loadFromFirebase()"><i class="ti ti-refresh"></i> Recargar</button>
   </div>
 
@@ -120,43 +98,45 @@
     <button class="tab active" onclick="showView('compare')" id="tab-compare"><i class="ti ti-chart-bar"></i> Comparar</button>
     <button class="tab" onclick="showView('add')" id="tab-add"><i class="ti ti-plus"></i> Añadir</button>
     <button class="tab" onclick="showView('history')" id="tab-history"><i class="ti ti-clock"></i> Historial</button>
-    <button class="tab" onclick="showView('manage')" id="tab-manage"><i class="ti ti-settings"></i> Gestionar</button>
     <button class="tab" onclick="showView('ranking')" id="tab-ranking"><i class="ti ti-trophy"></i> Ranking</button>
+    <button class="tab" onclick="showView('manage')" id="tab-manage"><i class="ti ti-settings"></i> Gestionar</button>
   </div>
 
+  <!-- COMPARE -->
   <div id="view-compare">
-    <div style="position:relative;margin-bottom:12px">
-      <i class="ti ti-search" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none"></i>
-      <input id="compare-search" placeholder="Filtrar productos..." oninput="render()" style="padding-left:30px;width:100%">
+    <div class="search-wrap" style="margin-bottom:12px">
+      <i class="ti ti-search search-icon"></i>
+      <input id="compare-search" placeholder="Filtrar productos..." oninput="renderCompare()">
     </div>
     <div id="compare-list"></div>
   </div>
+
+  <!-- ADD -->
   <div id="view-add" class="hidden">
     <div class="form-card">
       <div class="mb12">
         <label>Producto</label>
         <div class="search-wrap">
-          <i class="ti ti-search"></i>
-          <input id="product-search" placeholder="Buscar producto..." oninput="onProductSearch()" onfocus="onProductFocus()">
+          <i class="ti ti-search search-icon"></i>
+          <input id="product-search" placeholder="Buscar o escribir producto..." oninput="onProductSearch()" onfocus="onProductFocus()" autocomplete="off">
         </div>
         <div id="product-dropdown" class="dropdown hidden"></div>
       </div>
       <div class="mb12">
         <label>Tienda</label>
         <div class="search-wrap">
-          <i class="ti ti-building-store"></i>
-          <input id="store-search" placeholder="Buscar o escribir tienda..." oninput="onStoreSearch()" onfocus="onStoreFocus()" autocomplete="off" style="padding-left:30px">
+          <i class="ti ti-building-store search-icon"></i>
+          <input id="store-search" placeholder="Buscar o escribir tienda..." oninput="onStoreSearch()" onfocus="onStoreFocus()" autocomplete="off">
         </div>
         <div id="store-dropdown" class="dropdown hidden"></div>
-        <div id="store-new-hint" class="hidden mt8" style="font-size:12px;color:var(--warn)"><i class="ti ti-plus"></i> Se creará la tienda "<span id="store-new-name"></span>"</div>
       </div>
-      <div class="form-row-auto mb12">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:10px" class="mb12">
         <div><label>Precio (€)</label><input type="number" id="form-price" min="0" step="0.01" placeholder="0.00" oninput="updateEffective()"></div>
         <div><label>Por</label><select id="form-unit" style="width:75px"><option>kg</option><option>ud</option><option>l</option><option>100g</option><option>pack</option></select></div>
       </div>
       <div class="mb12">
         <label>Promoción</label>
-        <div class="promo-chips" id="promo-chips">
+        <div class="promo-chips">
           <span class="chip active" data-promo="none" onclick="selectPromo(this)">Sin promoción</span>
           <span class="chip" data-promo="2x1" onclick="selectPromo(this)">2x1</span>
           <span class="chip" data-promo="3x2" onclick="selectPromo(this)">3x2</span>
@@ -166,29 +146,36 @@
         </div>
         <div id="promo-pct-wrap" class="hidden mt8"><input type="number" id="promo-pct" min="1" max="99" placeholder="Ej: 20 (para 20%)" style="width:180px" oninput="updateEffective()"></div>
         <div id="promo-custom-wrap" class="hidden mt8"><input type="text" id="promo-custom" placeholder="Describe la promoción..."></div>
-        <div id="effective-price" class="text-sm mt8 hidden"></div>
+        <div id="effective-price" class="hidden mt8" style="font-size:12px;color:var(--text2)"></div>
       </div>
       <button class="btn btn-primary" id="add-btn" onclick="addEntry()"><i class="ti ti-plus"></i> Añadir precio</button>
     </div>
   </div>
+
+  <!-- HISTORY -->
   <div id="view-history" class="hidden"><div id="history-list"></div></div>
+
+  <!-- RANKING -->
+  <div id="view-ranking" class="hidden"><div id="ranking-list"></div></div>
+
+  <!-- MANAGE -->
   <div id="view-manage" class="hidden">
     <div class="manage-grid">
       <div class="manage-card">
         <div style="font-weight:500;font-size:14px;margin-bottom:12px">Productos</div>
         <div id="manage-products"></div>
-        <div class="flex gap8 mt8"><input id="new-product" placeholder="Nuevo producto" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addProduct()"><button class="btn" onclick="addProduct()"><i class="ti ti-plus"></i></button></div>
+        <div class="flex gap8 mt8"><input id="new-product" placeholder="Nuevo..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addProduct()"><button class="btn" onclick="addProduct()"><i class="ti ti-plus"></i></button></div>
       </div>
       <div class="manage-card">
         <div style="font-weight:500;font-size:14px;margin-bottom:12px">Tiendas</div>
         <div id="manage-stores"></div>
-        <div class="flex gap8 mt8"><input id="new-store" placeholder="Nueva tienda" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addStore()"><button class="btn" onclick="addStore()"><i class="ti ti-plus"></i></button></div>
+        <div class="flex gap8 mt8"><input id="new-store" placeholder="Nueva..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addStore()"><button class="btn" onclick="addStore()"><i class="ti ti-plus"></i></button></div>
       </div>
     </div>
   </div>
-  <div id="view-ranking" class="hidden"><div id="ranking-list"></div></div>
 </div>
 
+<!-- Firebase module -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
   import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
@@ -200,82 +187,66 @@
     projectId: "test1-df122",
     storageBucket: "test1-df122.firebasestorage.app",
     messagingSenderId: "745442720279",
-    appId: "1:745442720279:web:43eff7bb8a3a4abd357a52",
-    measurementId: "G-ZJ8TSC1WJ4"
+    appId: "1:745442720279:web:43eff7bb8a3a4abd357a52"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  // Clave separada del proyecto sharedIdeas — no interfiere con "info" ni "testInfo"
-  const dbRef = ref(db, "comparador-precios");
+  const dbRef = ref(db, "comparadorPrecios");
 
   function setSyncState(state, text) {
-    const dot = document.getElementById("sync-dot");
-    const label = document.getElementById("sync-label");
-    dot.className = "dot " + state;
-    label.textContent = text;
+    document.getElementById("sync-dot").className = "dot " + state;
+    document.getElementById("sync-label").textContent = text;
+  }
+
+  function normalizeData(raw) {
+    if (!raw) return null;
+    const toArr = v => !v ? [] : Array.isArray(v) ? v : Object.values(v);
+    return { products: toArr(raw.products), stores: toArr(raw.stores), entries: toArr(raw.entries) };
   }
 
   window.saveToFirebase = async function() {
     setSyncState("loading", "Guardando...");
     try {
       await set(dbRef, window._appData);
-      setSyncState("ok", "Guardado en Firebase · " + new Date().toLocaleTimeString("es-ES"));
+      setSyncState("ok", "Guardado · " + new Date().toLocaleTimeString("es-ES"));
     } catch(e) {
-      setSyncState("error", "Error al guardar: " + e.message);
+      setSyncState("error", "Error: " + e.message);
     }
   };
-
-  function normalizeData(raw) {
-    // Firebase convierte arrays en objetos {0:...,1:...} al guardar — los reconvertimos
-    if (!raw) return null;
-    const toArr = v => !v ? [] : Array.isArray(v) ? v : Object.values(v);
-    return { products: toArr(raw.products), stores: toArr(raw.stores), entries: toArr(raw.entries) };
-  }
 
   window.loadFromFirebase = async function() {
-    setSyncState("loading", "Cargando desde Firebase...");
+    setSyncState("loading", "Cargando...");
     try {
-      const snapshot = await get(dbRef);
-      if (snapshot.exists()) {
-        const normalized = normalizeData(snapshot.val());
-        if (normalized) window._appData = normalized;
-        setSyncState("ok", "Datos cargados · " + new Date().toLocaleTimeString("es-ES"));
+      const snap = await get(dbRef);
+      if (snap.exists()) {
+        const norm = normalizeData(snap.val());
+        if (norm) window._appData = norm;
+        setSyncState("ok", "Cargado · " + new Date().toLocaleTimeString("es-ES"));
       } else {
-        setSyncState("ok", "Sin datos aún en Firebase — puedes empezar a añadir precios");
+        setSyncState("ok", "Sin datos en Firebase aún");
       }
-      render();
+      if (window.render) window.render();
     } catch(e) {
-      setSyncState("error", "Error al cargar: " + e.message);
-      render();
+      setSyncState("error", "Error: " + e.message);
+      if (window.render) window.render();
     }
   };
 
-  // Carga inicial
-  window._appData = {
-    products: ["Cebolla", "Pan", "Yogures"],
-    stores: ["Mercadona", "Lidl", "Carrefour"],
-    entries: []
-  };
+  // Datos por defecto
+  window._appData = { products: ["Cebolla","Pan","Yogures"], stores: ["Mercadona","Lidl","Carrefour"], entries: [] };
+  try { const l = localStorage.getItem("pt-local"); if(l) window._appData = JSON.parse(l); } catch{}
 
-  // Intenta cargar desde localStorage como fallback offline
-  try {
-    const local = localStorage.getItem("comparador-precios-local");
-    if (local) window._appData = JSON.parse(local);
-  } catch {}
+  window._saveLocal = () => { try { localStorage.setItem("pt-local", JSON.stringify(window._appData)); } catch{} };
 
-  // Luego carga desde Firebase (prevalece sobre local)
   window.loadFromFirebase();
-
-  // Guarda en localStorage cada vez que cambien los datos (fallback offline)
-  window._saveLocal = function() {
-    try { localStorage.setItem("comparador-precios-local", JSON.stringify(window._appData)); } catch {}
-  };
 </script>
 
+<!-- App logic -->
 <script>
-const EMOJIS = { cebolla:"🧅", pan:"🍞", yogur:"🥛", leche:"🥛", tomate:"🍅", patata:"🥔", manzana:"🍎", arroz:"🍚", pasta:"🍝", huevo:"🥚", pollo:"🍗", aceite:"🫙", mantequilla:"🧈", queso:"🧀" };
-const PROMOS = [{id:"none",label:"Sin promoción"},{id:"2x1",label:"2x1"},{id:"3x2",label:"3x2"},{id:"pct",label:"% descuento"},{id:"2nd_half",label:"2ª ud. 50%"},{id:"custom",label:"Otra..."}];
+const EMOJIS = {cebolla:"🧅",pan:"🍞",yogur:"🥛",leche:"🥛",tomate:"🍅",patata:"🥔",manzana:"🍎",arroz:"🍚",pasta:"🍝",huevo:"🥚",pollo:"🍗",aceite:"🫙",mantequilla:"🧈",queso:"🧀"};
+const UNIT_FACTOR = {kg:1,"100g":10,l:1,ud:1,pack:1};
+const UNIT_GROUP  = {kg:"weight","100g":"weight",l:"volume",ud:"count",pack:"count"};
 
 function getEmoji(name) {
   const l = name.toLowerCase();
@@ -283,27 +254,15 @@ function getEmoji(name) {
   return "🛒";
 }
 function effectivePrice(e) {
-  if (!e.promo || e.promo==="none") return e.price;
+  if (!e.promo||e.promo==="none") return e.price;
   if (e.promo==="2x1") return e.price/2;
   if (e.promo==="3x2") return e.price*2/3;
-  if (e.promo==="pct" && e.promoPct) return e.price*(1-e.promoPct/100);
+  if (e.promo==="pct"&&e.promoPct) return e.price*(1-e.promoPct/100);
   if (e.promo==="2nd_half") return e.price*0.75;
   return e.price;
 }
-// Convierte el precio efectivo a una base comparable: €/kg para peso, €/l para volumen.
-// "ud" y "pack" no son convertibles entre sí, se mantienen como están.
-const UNIT_FACTOR = { "kg": 1, "100g": 10, "l": 1, "ud": 1, "pack": 1 };
-const UNIT_GROUP = { "kg": "weight", "100g": "weight", "l": "volume", "ud": "count", "pack": "count" };
-function comparablePrice(e) {
-  const factor = UNIT_FACTOR[e.unit] ?? 1;
-  return effectivePrice(e) * factor;
-}
-function comparableUnitLabel(unit) {
-  const group = UNIT_GROUP[unit];
-  if (group === "weight") return "kg";
-  if (group === "volume") return "l";
-  return unit;
-}
+function comparablePrice(e) { return effectivePrice(e) * (UNIT_FACTOR[e.unit]||1); }
+function comparableUnit(unit) { const g=UNIT_GROUP[unit]; return g==="weight"?"kg":g==="volume"?"l":unit; }
 function promoLabel(e) {
   if (!e.promo||e.promo==="none") return null;
   if (e.promo==="2x1") return "2x1";
@@ -314,51 +273,86 @@ function promoLabel(e) {
   return null;
 }
 
-let currentView="compare", selectedPromo="none", selectedProduct=null, editingProduct=null, editingStore=null, formProduct="";
+let currentView="compare", selectedPromo="none", openProduct=null, editingProduct=null, editingStore=null, formProduct="", formStore="";
 
-function data() { return window._appData; }
-function mutate(fn) { fn(window._appData); window._saveLocal && window._saveLocal(); render(); }
+function D() { return window._appData; }
+function mutate(fn) { fn(window._appData); window._saveLocal&&window._saveLocal(); render(); }
 
+// ── VIEWS ──
 function showView(v) {
-  currentView=v;
-  ["compare","add","history","manage","ranking"].forEach(id => {
+  currentView = v;
+  ["compare","add","history","ranking","manage"].forEach(id => {
     document.getElementById("view-"+id).classList.toggle("hidden", id!==v);
     document.getElementById("tab-"+id).classList.toggle("active", id===v);
   });
   render();
 }
 
+window.render = function render() {
+  const d = D();
+  document.getElementById("header-sub").textContent = d.products.length+" productos · "+d.stores.length+" tiendas";
+  if (currentView==="compare")  renderCompare();
+  if (currentView==="add")      renderAdd();
+  if (currentView==="history")  renderHistory();
+  if (currentView==="ranking")  renderRanking();
+  if (currentView==="manage")   renderManage();
+};
+
+// ── COMPARE ──
 function getStoreLatest(product) {
-  const rel = data().entries.filter(e=>e.product===product);
-  const byStore={};
-  rel.forEach(e=>{ if(!byStore[e.store]||e.id>byStore[e.store].id) byStore[e.store]=e; });
-  // Ordena por precio comparable (normalizado por unidad), no por precio bruto
+  const byStore = {};
+  D().entries.filter(e=>e.product===product).forEach(e=>{
+    if (!byStore[e.store]||e.id>byStore[e.store].id) byStore[e.store]=e;
+  });
   return Object.values(byStore).sort((a,b)=>comparablePrice(a)-comparablePrice(b));
 }
 
-
-function render() {
-  const d = data();
-  document.getElementById("header-sub").textContent = d.products.length+" productos · "+d.stores.length+" tiendas";
-  if (currentView==="compare") renderCompare();
-  if (currentView==="add") renderAdd();
-  if (currentView==="history") renderHistory();
-  if (currentView==="manage") renderManage();
-}
-
 function renderCompare() {
-  const el=document.getElementById("compare-list");
-  const d=data();
-  const q=(document.getElementById("compare-search")?.value||"").toLowerCase();
-  const products=d.products.filter(p=>p.toLowerCase().includes(q));
-  if(!d.products.length){el.innerHTML='<p style="color:var(--text2);font-size:14px">Añade productos en "Gestionar".</p>';return;}
-  if(!products.length){el.innerHTML='<p style="color:var(--text2);font-size:14px">Sin resultados.</p>';return;}
-  el.innerHTML=products.map(product=>{
-    const stores=getStoreLatest(product), best=stores[0], isOpen=selectedProduct===product;
-    const bestText=best?`Mejor: <span style="color:var(--success);font-weight:500">${best.store} — ${effectivePrice(best).toFixed(2)} €/${best.unit}</span>${promoLabel(best)?` <span class="badge badge-warn">${promoLabel(best)}</span>`:""}`:`<span style="color:var(--text3)">Sin precios aún</span>`;
-    let body="";
-    if(isOpen){
-      if(!stores.length){body=`<div class="card-body"><p style="font-size:13px;color:var(--text2)">Sin precios aún.</p></div>`;}
-      else{
-        const rows=stores.map((e,i)=>{
-          const 
+  const el = document.getElementById("compare-list");
+  const d = D();
+  const q = (document.getElementById("compare-search")?.value||"").toLowerCase();
+  const products = d.products.filter(p=>p.toLowerCase().includes(q));
+  if (!d.products.length) { el.innerHTML='<p style="color:var(--text2);font-size:14px">Añade productos en Gestionar.</p>'; return; }
+  if (!products.length)   { el.innerHTML='<p style="color:var(--text2);font-size:14px">Sin resultados.</p>'; return; }
+  el.innerHTML = products.map(product => {
+    const stores = getStoreLatest(product);
+    const best = stores[0];
+    const isOpen = openProduct === product;
+    const bestText = best
+      ? `Mejor: <span style="color:var(--success);font-weight:500">${best.store} — ${effectivePrice(best).toFixed(2)} €/${best.unit}</span>${promoLabel(best)?` <span class="badge badge-warn">${promoLabel(best)}</span>`:""}`
+      : `<span style="color:var(--text3)">Sin precios aún</span>`;
+    let body = "";
+    if (isOpen) {
+      if (!stores.length) {
+        body = `<div class="card-body"><p style="font-size:13px;color:var(--text2)">Sin precios aún.</p></div>`;
+      } else {
+        const rows = stores.map((e,i) => {
+          const isBest = i===0;
+          const effP = effectivePrice(e);
+          const compP = comparablePrice(e);
+          const diff = stores.length>1 ? ((compP-comparablePrice(stores[0]))/comparablePrice(stores[0])*100).toFixed(0) : 0;
+          const promo = promoLabel(e);
+          const hasDis = e.promo&&e.promo!=="none";
+          const equiv = (UNIT_FACTOR[e.unit]&&UNIT_FACTOR[e.unit]!==1) ? `<div style="font-size:11px;color:var(--text3)">≈ ${compP.toFixed(2)} €/${comparableUnit(e.unit)}</div>` : "";
+          return `<div class="store-row">
+            <div class="flex items-center flex-wrap gap8">
+              ${isBest?'<span class="badge badge-success">mejor</span>':""}
+              ${promo?`<span class="badge badge-warn">${promo}</span>`:""}
+              <span style="font-size:14px">${e.store}</span>
+              <span style="font-size:12px;color:var(--text3)">${e.date}</span>
+            </div>
+            <div class="flex items-center gap8">
+              ${!isBest&&stores.length>1?`<span style="font-size:12px;color:var(--text2)">+${diff}%</span>`:""}
+              <div class="text-right">
+                ${hasDis?`<div class="price-old">${e.price.toFixed(2)} €</div>`:""}
+                <span style="font-weight:500;font-size:15px;${hasDis?"color:var(--warn)":""}">${effP.toFixed(2)} €</span>
+                <span style="font-size:12px;color:var(--text2)">/${e.unit}</span>
+                ${equiv}
+              </div>
+            </div>
+          </div>`;
+        }).join("");
+        const cheapUnit = comparableUnit(stores[0].unit);
+        const sameGroup = stores.every(s=>comparableUnit(s.unit)===cheapUnit);
+        const savings = stores.length>1&&sameGroup
+          ? `<div class="savings-box">Ahorro máximo: <strong>${(comparablePrice(stores[stores.length-1])-comparablePrice(stores[0])).toFixed(2)} €/${cheapUnit}</strong> comprando en ${stores[0].store}</div
