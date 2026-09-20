@@ -239,11 +239,18 @@
 
   window._saveLocal = () => { try { localStorage.setItem("pt-local", JSON.stringify(window._appData)); } catch{} };
 
-  window.loadFromFirebase();
+  // Espera a que el script normal defina window.render antes de cargar
+  setTimeout(() => window.loadFromFirebase(), 0);
 </script>
 
 <!-- App logic -->
 <script>
+// Datos por defecto — el módulo de Firebase los sobreescribirá al cargar
+if (!window._appData) {
+  window._appData = { products: ["Cebolla","Pan","Yogures"], stores: ["Mercadona","Lidl","Carrefour"], entries: [] };
+  try { const l = localStorage.getItem("pt-local"); if(l) window._appData = JSON.parse(l); } catch{}
+}
+
 const EMOJIS = {cebolla:"🧅",pan:"🍞",yogur:"🥛",leche:"🥛",tomate:"🍅",patata:"🥔",manzana:"🍎",arroz:"🍚",pasta:"🍝",huevo:"🥚",pollo:"🍗",aceite:"🫙",mantequilla:"🧈",queso:"🧀"};
 const UNIT_FACTOR = {kg:1,"100g":10,l:1,ud:1,pack:1};
 const UNIT_GROUP  = {kg:"weight","100g":"weight",l:"volume",ud:"count",pack:"count"};
@@ -355,4 +362,269 @@ function renderCompare() {
         const cheapUnit = comparableUnit(stores[0].unit);
         const sameGroup = stores.every(s=>comparableUnit(s.unit)===cheapUnit);
         const savings = stores.length>1&&sameGroup
-          ? `<div class="savings-box">Ahorro máximo: <strong>${(comparablePrice(stores[stores.length-1])-comparablePrice(stores[0])).toFixed(2)} €/${cheapUnit}</strong> comprando en ${stores[0].store}</div
+          ? `<div class="savings-box">Ahorro máximo: <strong>${(comparablePrice(stores[stores.length-1])-comparablePrice(stores[0])).toFixed(2)} €/${cheapUnit}</strong> comprando en ${stores[0].store}</div>`
+          : "";
+        body = `<div class="card-body">${rows}${savings}</div>`;
+      }
+    }
+    return `<div class="card">
+      <div class="card-header" onclick="toggleProduct('${product.replace(/'/g,"\\'")}')">
+        <div class="flex items-center gap8">
+          <span style="font-size:20px">${getEmoji(product)}</span>
+          <div>
+            <div style="font-weight:500;font-size:15px">${product}</div>
+            <div style="font-size:12px;color:var(--text2)">${bestText}</div>
+          </div>
+        </div>
+        <i class="ti ${isOpen?"ti-chevron-up":"ti-chevron-down"}" style="color:var(--text2)"></i>
+      </div>
+      ${body}
+    </div>`;
+  }).join("");
+}
+function toggleProduct(p) { openProduct = openProduct===p ? null : p; renderCompare(); }
+
+// ── ADD ──
+function renderAdd() { updateEffective(); }
+
+function onProductSearch() { formProduct=""; showProductDropdown(); }
+function onProductFocus()  { if (!formProduct) showProductDropdown(); }
+function showProductDropdown() {
+  const raw = document.getElementById("product-search").value.trim();
+  const q = raw.toLowerCase();
+  const filtered = D().products.filter(p=>p.toLowerCase().includes(q));
+  const exact = D().products.some(p=>p.toLowerCase()===q);
+  const dd = document.getElementById("product-dropdown");
+  let html = filtered.map(p=>`<div class="dropdown-item" onclick="selectProduct('${p.replace(/'/g,"\\'")}')">${getEmoji(p)} ${p}</div>`).join("");
+  if (raw && !exact) html += `<div class="dropdown-item" style="color:var(--warn)" onclick="createProduct()"><i class="ti ti-plus"></i> Crear "${raw}"</div>`;
+  dd.innerHTML = html || '<div class="dropdown-empty">Sin resultados</div>';
+  dd.classList.remove("hidden");
+}
+function selectProduct(p) { formProduct=p; document.getElementById("product-search").value=p; document.getElementById("product-dropdown").classList.add("hidden"); }
+function createProduct() {
+  const name = document.getElementById("product-search").value.trim();
+  if (!name||D().products.includes(name)) return;
+  mutate(d=>{ d.products.push(name); });
+  saveToFirebase();
+  selectProduct(name);
+}
+
+function onStoreSearch() { formStore=""; showStoreDropdown(); }
+function onStoreFocus()  { if (!formStore) showStoreDropdown(); }
+function showStoreDropdown() {
+  const raw = document.getElementById("store-search").value.trim();
+  const q = raw.toLowerCase();
+  const filtered = D().stores.filter(s=>s.toLowerCase().includes(q));
+  const exact = D().stores.some(s=>s.toLowerCase()===q);
+  const dd = document.getElementById("store-dropdown");
+  let html = filtered.map(s=>`<div class="dropdown-item" onclick="selectStore('${s.replace(/'/g,"\\'")}')"">🏪 ${s}</div>`).join("");
+  if (raw && !exact) html += `<div class="dropdown-item" style="color:var(--warn)" onclick="createStore()"><i class="ti ti-plus"></i> Crear "${raw}"</div>`;
+  dd.innerHTML = html || '<div class="dropdown-empty">Sin resultados</div>';
+  dd.classList.remove("hidden");
+}
+function selectStore(s) { formStore=s; document.getElementById("store-search").value=s; document.getElementById("store-dropdown").classList.add("hidden"); }
+function createStore() {
+  const name = document.getElementById("store-search").value.trim();
+  if (!name||D().stores.includes(name)) return;
+  mutate(d=>{ d.stores.push(name); });
+  saveToFirebase();
+  selectStore(name);
+}
+
+document.addEventListener("click", e => {
+  const ddP = document.getElementById("product-dropdown");
+  if (ddP && !ddP.contains(e.target) && e.target.id!=="product-search") ddP.classList.add("hidden");
+  const ddS = document.getElementById("store-dropdown");
+  if (ddS && !ddS.contains(e.target) && e.target.id!=="store-search") ddS.classList.add("hidden");
+});
+
+function selectPromo(el) {
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+  selectedPromo = el.dataset.promo;
+  document.getElementById("promo-pct-wrap").classList.toggle("hidden", selectedPromo!=="pct");
+  document.getElementById("promo-custom-wrap").classList.toggle("hidden", selectedPromo!=="custom");
+  updateEffective();
+}
+function updateEffective() {
+  const price = parseFloat(document.getElementById("form-price").value);
+  const pct   = parseFloat(document.getElementById("promo-pct")?.value);
+  const unit  = document.getElementById("form-unit").value;
+  const el    = document.getElementById("effective-price");
+  if (selectedPromo&&selectedPromo!=="none"&&price) {
+    el.textContent = `Precio efectivo: ${effectivePrice({price,promo:selectedPromo,promoPct:pct}).toFixed(2)} €/${unit}`;
+    el.classList.remove("hidden");
+  } else { el.classList.add("hidden"); }
+}
+
+function addEntry() {
+  const price = parseFloat(document.getElementById("form-price").value);
+  const unit  = document.getElementById("form-unit").value;
+  const promoPct    = parseFloat(document.getElementById("promo-pct")?.value)||null;
+  const promoCustom = document.getElementById("promo-custom")?.value||null;
+  if (!formProduct||!formStore||!price) { alert("Selecciona producto, tienda y precio."); return; }
+  const entry = { id:Date.now(), product:formProduct, store:formStore, price, unit, promo:selectedPromo, promoPct, promoCustom, date:new Date().toLocaleDateString("es-ES") };
+  mutate(d=>{ d.entries.unshift(entry); });
+  // Reset form
+  document.getElementById("form-price").value = "";
+  document.getElementById("product-search").value = ""; formProduct = "";
+  document.getElementById("store-search").value   = ""; formStore   = "";
+  selectedPromo = "none";
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active", c.dataset.promo==="none"));
+  document.getElementById("promo-pct-wrap").classList.add("hidden");
+  document.getElementById("promo-custom-wrap").classList.add("hidden");
+  document.getElementById("effective-price").classList.add("hidden");
+  const btn = document.getElementById("add-btn");
+  btn.innerHTML = '<i class="ti ti-check"></i> ¡Guardado!'; btn.classList.add("btn-success");
+  setTimeout(()=>{ btn.innerHTML='<i class="ti ti-plus"></i> Añadir precio'; btn.classList.remove("btn-success"); }, 1500);
+  saveToFirebase();
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  const el = document.getElementById("history-list");
+  const d = D();
+  if (!d.entries.length) { el.innerHTML='<p style="font-size:14px;color:var(--text2)">Sin entradas todavía.</p>'; return; }
+  el.innerHTML = d.entries.map(e => {
+    const promo = promoLabel(e), hasDis = e.promo&&e.promo!=="none";
+    return `<div class="history-row">
+      <div class="flex items-center gap8">
+        <span style="font-size:18px">${getEmoji(e.product)}</span>
+        <div>
+          <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px">
+            ${e.product} · ${e.store}
+            ${promo?`<span class="badge badge-warn">${promo}</span>`:""}
+          </div>
+          <div style="font-size:12px;color:var(--text2)">${e.date}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap8">
+        <div class="text-right">
+          ${hasDis?`<div class="price-old">${e.price.toFixed(2)} €</div>`:""}
+          <span style="font-size:14px;font-weight:500;${hasDis?"color:var(--warn)":""}">${effectivePrice(e).toFixed(2)} €/${e.unit}</span>
+        </div>
+        <button class="btn-icon" onclick="deleteEntry(${e.id})"><i class="ti ti-trash" style="font-size:16px"></i></button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function deleteEntry(id) { mutate(d=>{ d.entries=d.entries.filter(e=>e.id!==id); }); saveToFirebase(); }
+
+// ── RANKING ──
+function renderRanking() {
+  const el = document.getElementById("ranking-list");
+  const d = D();
+  if (!d.entries.length) { el.innerHTML='<p style="font-size:14px;color:var(--text2)">Añade precios primero.</p>'; return; }
+
+  const storeStats = {};
+  d.products.forEach(product => {
+    const stores = getStoreLatest(product);
+    if (stores.length < 2) return;
+    const bestP = comparablePrice(stores[0]);
+    stores.forEach((e, i) => {
+      if (!storeStats[e.store]) storeStats[e.store] = { wins:0, totalPct:0, count:0, bests:[], worsts:[] };
+      const pct = ((comparablePrice(e)-bestP)/bestP*100);
+      storeStats[e.store].totalPct += pct;
+      storeStats[e.store].count++;
+      if (i===0) { storeStats[e.store].wins++; storeStats[e.store].bests.push(product); }
+      else storeStats[e.store].worsts.push({product, pct});
+    });
+  });
+
+  const ranked = Object.entries(storeStats)
+    .map(([store,v])=>({store, avg:v.count?v.totalPct/v.count:0, ...v}))
+    .sort((a,b)=>a.avg-b.avg);
+
+  if (!ranked.length) { el.innerHTML='<p style="font-size:14px;color:var(--text2)">Necesitas al menos un producto con precio en 2+ tiendas.</p>'; return; }
+
+  const medals = ["🥇","🥈","🥉"];
+  el.innerHTML = ranked.map((s,i) => {
+    const medal = medals[i]||"🏪";
+    const avgTxt = s.avg<0.5 ? "≈ precio más bajo" : `+${s.avg.toFixed(1)}% sobre el más barato`;
+    const worstTop = [...s.worsts].sort((a,b)=>b.pct-a.pct).slice(0,3);
+    return `<div class="card" style="margin-bottom:10px">
+      <div style="padding:14px 16px">
+        <div class="flex items-center gap8" style="margin-bottom:10px">
+          <span style="font-size:22px">${medal}</span>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:16px">${s.store}</div>
+            <div style="font-size:12px;color:${i===0?"var(--success)":"var(--text2)"}">${avgTxt}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text3)">mejor en</div>
+            <div style="font-size:15px;font-weight:600;color:var(--success)">${s.wins} <span style="font-size:12px;font-weight:400">prod.</span></div>
+          </div>
+        </div>
+        ${s.bests.length?`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:5px">Más barato en:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+          ${s.bests.map(p=>`<span class="badge badge-success">${getEmoji(p)} ${p}</span>`).join("")}
+        </div>`:""}
+        ${worstTop.length?`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:5px">Más caro en:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${worstTop.map(w=>`<span class="badge badge-warn">${getEmoji(w.product)} ${w.product} (+${w.pct.toFixed(0)}%)</span>`).join("")}
+        </div>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── MANAGE ──
+function renderManage() {
+  const d = D();
+  document.getElementById("manage-products").innerHTML = d.products.map(p => {
+    if (editingProduct===p) return `<div class="edit-row"><input id="ep-input" value="${p}" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')confirmRenameProduct();if(event.key==='Escape')cancelEdit()"><button class="btn btn-success" style="padding:0 8px" onclick="confirmRenameProduct()"><i class="ti ti-check"></i></button><button class="btn" style="padding:0 8px" onclick="cancelEdit()"><i class="ti ti-x"></i></button></div>`;
+    return `<div class="manage-row"><span style="font-size:14px">${getEmoji(p)} ${p}</span><div class="flex gap8"><button class="btn-icon" onclick="startEditProduct('${p.replace(/'/g,"\\'")}')"><i class="ti ti-pencil" style="font-size:13px"></i></button><button class="btn-icon" onclick="deleteProduct('${p.replace(/'/g,"\\'")}')"><i class="ti ti-trash" style="font-size:13px"></i></button></div></div>`;
+  }).join("");
+  document.getElementById("manage-stores").innerHTML = d.stores.map(s => {
+    if (editingStore===s) return `<div class="edit-row"><input id="es-input" value="${s}" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')confirmRenameStore();if(event.key==='Escape')cancelEdit()"><button class="btn btn-success" style="padding:0 8px" onclick="confirmRenameStore()"><i class="ti ti-check"></i></button><button class="btn" style="padding:0 8px" onclick="cancelEdit()"><i class="ti ti-x"></i></button></div>`;
+    return `<div class="manage-row"><span style="font-size:14px">🏪 ${s}</span><div class="flex gap8"><button class="btn-icon" onclick="startEditStore('${s.replace(/'/g,"\\'")}')"><i class="ti ti-pencil" style="font-size:13px"></i></button><button class="btn-icon" onclick="deleteStore('${s.replace(/'/g,"\\'")}')"><i class="ti ti-trash" style="font-size:13px"></i></button></div></div>`;
+  }).join("");
+  if (editingProduct) setTimeout(()=>document.getElementById("ep-input")?.focus(), 50);
+  if (editingStore)   setTimeout(()=>document.getElementById("es-input")?.focus(), 50);
+}
+function startEditProduct(p) { editingProduct=p; editingStore=null; renderManage(); }
+function startEditStore(s)   { editingStore=s;   editingProduct=null; renderManage(); }
+function cancelEdit()        { editingProduct=null; editingStore=null; renderManage(); }
+function confirmRenameProduct() {
+  const val = document.getElementById("ep-input").value.trim();
+  if (!val||(val!==editingProduct&&D().products.includes(val))) return;
+  const old = editingProduct;
+  mutate(d=>{ d.products=d.products.map(p=>p===old?val:p); d.entries=d.entries.map(e=>e.product===old?{...e,product:val}:e); });
+  if (openProduct===old) openProduct=val;
+  editingProduct=null; saveToFirebase();
+}
+function confirmRenameStore() {
+  const val = document.getElementById("es-input").value.trim();
+  if (!val||(val!==editingStore&&D().stores.includes(val))) return;
+  const old = editingStore;
+  mutate(d=>{ d.stores=d.stores.map(s=>s===old?val:s); d.entries=d.entries.map(e=>e.store===old?{...e,store:val}:e); });
+  editingStore=null; saveToFirebase();
+}
+function addProduct() {
+  const input=document.getElementById("new-product"), name=input.value.trim();
+  if (!name||D().products.includes(name)) return;
+  mutate(d=>{ d.products.push(name); }); input.value=""; saveToFirebase();
+}
+function deleteProduct(p) {
+  if (!confirm(`¿Eliminar "${p}" y todos sus precios?`)) return;
+  mutate(d=>{ d.products=d.products.filter(x=>x!==p); d.entries=d.entries.filter(e=>e.product!==p); });
+  if (openProduct===p) openProduct=null; saveToFirebase();
+}
+function addStore() {
+  const input=document.getElementById("new-store"), name=input.value.trim();
+  if (!name||D().stores.includes(name)) return;
+  mutate(d=>{ d.stores.push(name); }); input.value=""; saveToFirebase();
+}
+function deleteStore(s) {
+  if (!confirm(`¿Eliminar "${s}" y todos sus precios?`)) return;
+  mutate(d=>{ d.stores=d.stores.filter(x=>x!==s); d.entries=d.entries.filter(e=>e.store!==s); });
+  saveToFirebase();
+}
+
+// Render inicial con los datos locales mientras carga Firebase
+window.render();
+</script>
+</body>
+</html>
