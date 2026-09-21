@@ -130,6 +130,7 @@
         </div>
         <div id="store-dropdown" class="dropdown hidden"></div>
       </div>
+      <div id="existing-info" class="hidden mb12" style="padding:10px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px"></div>
       <div style="display:grid;grid-template-columns:1fr auto;gap:10px" class="mb12">
         <div><label>Precio (€)</label><input type="number" id="form-price" min="0" step="0.01" placeholder="0.00" oninput="updateEffective()"></div>
         <div><label>Por</label><select id="form-unit" style="width:75px"><option>kg</option><option>ud</option><option>l</option><option>100g</option><option>pack</option></select></div>
@@ -385,7 +386,31 @@ function renderCompare() {
 function toggleProduct(p) { openProduct = openProduct===p ? null : p; renderCompare(); }
 
 // ── ADD ──
-function renderAdd() { updateEffective(); }
+function renderAdd() { updateEffective(); updateExistingInfo(); }
+
+function updateExistingInfo() {
+  const el = document.getElementById("existing-info");
+  if (!el) return;
+  if (!formProduct || !formStore) { el.classList.add("hidden"); return; }
+  // Find latest entry for this product+store combination
+  const entries = D().entries.filter(e => e.product===formProduct && e.store===formStore);
+  if (!entries.length) { el.classList.add("hidden"); return; }
+  const latest = entries.reduce((a,b) => a.id>b.id ? a : b);
+  const effP = effectivePrice(latest);
+  const compP = comparablePrice(latest);
+  const promo = promoLabel(latest);
+  const equiv = (UNIT_FACTOR[latest.unit]&&UNIT_FACTOR[latest.unit]!==1) ? ` <span style="color:var(--text3)">≈ ${compP.toFixed(2)} €/${comparableUnit(latest.unit)}</span>` : "";
+  el.classList.remove("hidden");
+  el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <span style="color:var(--text3);font-size:11px">Último precio registrado · ${latest.date}</span><br>
+      <span style="font-weight:500">${effP.toFixed(2)} €/${latest.unit}</span>${equiv}
+      ${promo ? `<span class="badge badge-warn" style="margin-left:6px">${promo}</span>` : ""}
+      ${latest.price!==effP ? `<span style="color:var(--text3);font-size:11px;margin-left:4px">(precio base: ${latest.price.toFixed(2)} €)</span>` : ""}
+    </div>
+    <i class="ti ti-info-circle" style="font-size:20px;color:var(--text3)"></i>
+  </div>`;
+}
 
 function onProductSearch() { formProduct=""; showProductDropdown(); }
 function onProductFocus()  { if (!formProduct) showProductDropdown(); }
@@ -400,7 +425,7 @@ function showProductDropdown() {
   dd.innerHTML = html || '<div class="dropdown-empty">Sin resultados</div>';
   dd.classList.remove("hidden");
 }
-function selectProduct(p) { formProduct=p; document.getElementById("product-search").value=p; document.getElementById("product-dropdown").classList.add("hidden"); }
+function selectProduct(p) { formProduct=p; document.getElementById("product-search").value=p; document.getElementById("product-dropdown").classList.add("hidden"); updateExistingInfo(); }
 function createProduct() {
   const name = document.getElementById("product-search").value.trim();
   if (!name||D().products.includes(name)) return;
@@ -422,7 +447,7 @@ function showStoreDropdown() {
   dd.innerHTML = html || '<div class="dropdown-empty">Sin resultados</div>';
   dd.classList.remove("hidden");
 }
-function selectStore(s) { formStore=s; document.getElementById("store-search").value=s; document.getElementById("store-dropdown").classList.add("hidden"); }
+function selectStore(s) { formStore=s; document.getElementById("store-search").value=s; document.getElementById("store-dropdown").classList.add("hidden"); updateExistingInfo(); }
 function createStore() {
   const name = document.getElementById("store-search").value.trim();
   if (!name||D().stores.includes(name)) return;
