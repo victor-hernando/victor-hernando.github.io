@@ -33,6 +33,8 @@
   .dot.error { background:#ef4444; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   .sync-btn { padding:4px 10px; font-size:12px; border:1px solid var(--border2); border-radius:var(--radius-sm); background:var(--bg); color:var(--text); cursor:pointer; display:flex; align-items:center; gap:4px; }
+  .sync-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .sync-bar.blocked { background:var(--warn-bg); border-color:var(--warn-border); }
   .header { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
   .tabs { display:flex; gap:4px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto; }
   .tab { padding:6px 12px; font-size:13px; border-radius:var(--radius-sm); border:1px solid transparent; cursor:pointer; background:transparent; color:var(--text2); white-space:nowrap; display:flex; align-items:center; gap:5px; }
@@ -90,8 +92,8 @@
   <div class="sync-bar">
     <div class="dot loading" id="sync-dot"></div>
     <span id="sync-label">Conectando...</span>
-    <button class="sync-btn" style="margin-left:auto" onclick="saveToFirebase()"><i class="ti ti-cloud-upload"></i> Guardar</button>
-    <button class="sync-btn" onclick="loadFromFirebase()"><i class="ti ti-refresh"></i> Recargar</button>
+    <button class="sync-btn" id="save-btn" style="margin-left:auto" title="Subir los cambios a Firebase" onclick="saveToFirebase()"><i class="ti ti-cloud-upload"></i> Guardar</button>
+    <button class="sync-btn" id="reload-btn" title="Volver a descargar los datos de Firebase" onclick="loadFromFirebase()"><i class="ti ti-refresh"></i> Recargar</button>
   </div>
 
   <div class="tabs">
@@ -179,7 +181,7 @@
 <!-- Firebase module -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+  import { getDatabase, ref, get, runTransaction } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAWAEJahdFnVkQQk7whGWbGru3lus_f4sE",
@@ -194,10 +196,14 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const dbRef = ref(db, "comparador-precios");
+  const FB = window._fb;
+  const LOAD_TIMEOUT = 10000;
+  window._fbModuleLoaded = true;
 
-  function setSyncState(state, text) {
-    document.getElementById("sync-dot").className = "dot " + state;
-    document.getElementById("sync-label").textContent = text;
+  function withTimeout(promise, ms, msg) {
+    let t;
+    return Promise.race([ promise, new Promise((_, rej) => { t = setTimeout(() => rej(new Error(msg)), ms); }) ])
+      .finally(() => clearTimeout(t));
   }
 
   function normalizeData(raw) {
@@ -206,51 +212,151 @@
     return { products: toArr(raw.products), stores: toArr(raw.stores), entries: toArr(raw.entries) };
   }
 
+  // Los datos anteriores a este cambio no tenían "rev": se tratan como versión 0.
+  const revOf = raw => (raw && typeof raw.rev === "number") ? raw.rev : 0;
+
+  function markSynced(rev) {
+    FB.loadedRev = rev;
+    FB.dirty = false;
+    FB.error = null;
+    FB.syncedAt = new Date().toLocaleTimeString("es-ES");
+    window._fbRefreshUI();
+  }
+
   window.saveToFirebase = async function() {
-    setSyncState("loading", "Guardando...");
+    // Guarda de seguridad: sin datos remotos descargados no se escribe nunca.
+    if (!window._fbCanWrite()) { window._fbRefreshUI(); return; }
+    const baseRev = FB.loadedRev;
+    // Copia estable: runTransaction puede reintentar y debe enviar lo mismo.
+    const payload = JSON.parse(JSON.stringify(window._appData));
+    window.setSyncState("loading", "Guardando...");
     try {
-      await set(dbRef, window._appData);
-      setSyncState("ok", "Guardado · " + new Date().toLocaleTimeString("es-ES"));
+      // runTransaction es atómico: si el nodo cambió desde la carga (otro
+      // dispositivo), aborta en vez de sobrescribir.
+      const res = await runTransaction(dbRef, cur => {
+        const curRev = revOf(cur);
+        if (curRev !== baseRev) return undefined;          // aborta la escritura
+        return Object.assign({}, payload, { rev: curRev + 1, updatedAt: Date.now() });
+      });
+      if (!res.committed) {
+        FB.state = "stale";
+        window._fbRefreshUI();
+        return;
+      }
+      markSynced(baseRev + 1);
     } catch(e) {
-      setSyncState("error", "Error: " + e.message);
+      FB.state = "error";
+      FB.error = "no se pudo guardar · " + e.message;
+      window._fbRefreshUI();
     }
   };
 
-  window.loadFromFirebase = async function() {
-    setSyncState("loading", "Cargando...");
+  window.loadFromFirebase = async function(opts) {
+    const skipConfirm = opts && opts.skipConfirm;
+    if (!skipConfirm && FB.dirty && !confirm(
+      "Hay cambios en este dispositivo que aún no se han subido a Firebase.\n\nSi recargas, se descartarán.\n\n¿Continuar?"
+    )) return;
+    FB.state = "loading";
+    FB.error = null;
+    window._fbRefreshUI();
     try {
-      const snap = await get(dbRef);
-      if (snap.exists()) {
-        const norm = normalizeData(snap.val());
-        if (norm) window._appData = norm;
-        setSyncState("ok", "Cargado · " + new Date().toLocaleTimeString("es-ES"));
+      const snap = await withTimeout(get(dbRef), LOAD_TIMEOUT, "tiempo de espera agotado al leer Firebase");
+      const raw = snap.val();
+      if (raw == null) {
+        // Nodo inexistente: no hay nada remoto que sobrescribir, se puede escribir.
+        FB.state = "empty";
+        markSynced(0);
       } else {
-        setSyncState("ok", "Sin datos en Firebase aún");
+        const norm = normalizeData(raw);
+        if (!norm) throw new Error("los datos de Firebase no tienen un formato válido");
+        window._appData = norm;
+        FB.state = "ready";
+        markSynced(revOf(raw));
+        window._saveLocal();
       }
       if (window.render) window.render();
     } catch(e) {
-      setSyncState("error", "Error: " + e.message);
-      if (window.render) window.render();
+      // _appData no se toca: la copia local sigue intacta y sin permiso de escritura.
+      FB.state = "error";
+      FB.error = e.message;
+      window._fbRefreshUI();
     }
   };
 
-  // Datos por defecto
-  window._appData = { products: ["Cebolla","Pan","Yogures"], stores: ["Mercadona","Lidl","Carrefour"], entries: [] };
-  try { const l = localStorage.getItem("pt-local"); if(l) window._appData = JSON.parse(l); } catch{}
-
-  window._saveLocal = () => { try { localStorage.setItem("pt-local", JSON.stringify(window._appData)); } catch{} };
-
   // Espera a que el script normal defina window.render antes de cargar
-  setTimeout(() => window.loadFromFirebase(), 0);
+  setTimeout(() => window.loadFromFirebase({ skipConfirm:true }), 0);
 </script>
 
 <!-- App logic -->
 <script>
+// ── Estado de sincronización con Firebase ──
+// Debe definirse aquí y no en el módulo: los <script type="module"> son diferidos
+// y, si el import de gstatic falla (sin conexión), este bloque sigue siendo el
+// único que puede impedir que se escriba en Firebase.
+const FB = window._fb = { state:"loading", loadedRev:null, dirty:false, error:null, syncedAt:null };
+
+// Solo se puede escribir con los datos remotos ya descargados.
+window._fbCanWrite = () => FB.state==="ready" || FB.state==="empty";
+
+window.setSyncState = function(state, text) {
+  document.getElementById("sync-dot").className = "dot " + state;
+  document.getElementById("sync-label").textContent = text;
+};
+
+// Traduce el estado de sincronización a la barra de estado y al botón Guardar.
+window._fbRefreshUI = function() {
+  const canWrite = window._fbCanWrite();
+  const saveBtn = document.getElementById("save-btn");
+  if (saveBtn) saveBtn.disabled = !canWrite;
+  const bar = document.querySelector(".sync-bar");
+  if (bar) bar.classList.toggle("blocked", !canWrite);
+  let dot = "loading", text = "Conectando...";
+  if (canWrite) {
+    dot = "ok";
+    text = FB.state==="empty"
+      ? "Base vacía en Firebase · se puede guardar"
+      : "Sincronizado · " + (FB.syncedAt || new Date().toLocaleTimeString("es-ES"));
+  } else if (FB.state==="stale") {
+    dot = "error"; text = "⚠ Firebase cambió en otra sesión · pulsa Recargar antes de guardar";
+  } else if (FB.state==="offline") {
+    dot = "error"; text = "⚠ Sin conexión · los cambios solo se guardan en este dispositivo";
+  } else if (FB.state==="error") {
+    dot = "error"; text = "⚠ " + (FB.error || "No se pudo leer Firebase") + " · cambios solo locales";
+  } else if (FB.dirty) {
+    text = "Cargando · con cambios locales sin subir";
+  }
+  window.setSyncState(dot, text);
+};
+
+// Stubs: el módulo de Firebase los sustituye si carga bien. Sin ellos, un fallo
+// de red al abrir la página dejaría los botones del onclick sin función.
+function fbModuleMissing() {
+  FB.state = "error";
+  FB.error = "no se pudo cargar el módulo de Firebase (¿sin conexión?)";
+  window._fbRefreshUI();
+}
+window.saveToFirebase  = async function() { fbModuleMissing(); };
+window.loadFromFirebase = async function() { fbModuleMissing(); };
+
+// Si el módulo no llega a ejecutarse, la barra no se queda en "Conectando..."
+setTimeout(() => { if (FB.state==="loading" && !window._fbModuleLoaded) fbModuleMissing(); }, 15000);
+
+window.addEventListener("offline", () => {
+  if (FB.state!=="loading") { FB.state = "offline"; window._fbRefreshUI(); }
+});
+window.addEventListener("online", () => {
+  if (FB.state!=="offline" && FB.state!=="error") return;
+  if (FB.dirty) { FB.state = "stale"; window._fbRefreshUI(); }   // no se descarta nada sin recargar
+  else window.loadFromFirebase({ skipConfirm:true });
+});
+
 // Datos por defecto — el módulo de Firebase los sobreescribirá al cargar
 if (!window._appData) {
   window._appData = { products: ["Cebolla","Pan","Yogures"], stores: ["Mercadona","Lidl","Carrefour"], entries: [] };
   try { const l = localStorage.getItem("pt-local"); if(l) window._appData = JSON.parse(l); } catch{}
 }
+
+window._saveLocal = () => { try { localStorage.setItem("pt-local", JSON.stringify(window._appData)); } catch{} };
 
 const EMOJIS = {cebolla:"🧅",pan:"🍞",yogur:"🥛",leche:"🥛",tomate:"🍅",patata:"🥔",manzana:"🍎",arroz:"🍚",pasta:"🍝",huevo:"🥚",pollo:"🍗",aceite:"🫙",mantequilla:"🧈",queso:"🧀"};
 const UNIT_FACTOR = {kg:1,"100g":10,l:1,ud:1,pack:1};
@@ -275,7 +381,7 @@ function promoLabel(e) {
   if (!e.promo||e.promo==="none") return null;
   if (e.promo==="2x1") return "2x1";
   if (e.promo==="3x2") return "3x2";
-  if (e.promo==="pct") return `-${e.promoPct}%`;
+  if (e.promo==="pct") return e.promoPct ? `-${e.promoPct}%` : null;
   if (e.promo==="2nd_half") return "2ª ud. 50%";
   if (e.promo==="custom") return e.promoCustom||"Promo";
   return null;
@@ -284,7 +390,7 @@ function promoLabel(e) {
 let currentView="compare", selectedPromo="none", openProduct=null, editingProduct=null, editingStore=null, formProduct="", formStore="";
 
 function D() { return window._appData; }
-function mutate(fn) { fn(window._appData); window._saveLocal&&window._saveLocal(); render(); }
+function mutate(fn) { fn(window._appData); if (window._fb) window._fb.dirty = true; window._saveLocal&&window._saveLocal(); render(); }
 
 // ── VIEWS ──
 function showView(v) {
@@ -340,7 +446,7 @@ function renderCompare() {
           const compP = comparablePrice(e);
           const diff = stores.length>1 ? ((compP-comparablePrice(stores[0]))/comparablePrice(stores[0])*100).toFixed(0) : 0;
           const promo = promoLabel(e);
-          const hasDis = e.promo&&e.promo!=="none";
+          const hasDis = !!promoLabel(e);
           const equiv = (UNIT_FACTOR[e.unit]&&UNIT_FACTOR[e.unit]!==1) ? `<div style="font-size:11px;color:var(--text3)">≈ ${compP.toFixed(2)} €/${comparableUnit(e.unit)}</div>` : "";
           return `<div class="store-row">
             <div class="flex items-center flex-wrap gap8">
@@ -500,7 +606,8 @@ function addEntry() {
   document.getElementById("promo-custom-wrap").classList.add("hidden");
   document.getElementById("effective-price").classList.add("hidden");
   const btn = document.getElementById("add-btn");
-  btn.innerHTML = '<i class="ti ti-check"></i> ¡Guardado!'; btn.classList.add("btn-success");
+  if (window._fbCanWrite()) { btn.innerHTML = '<i class="ti ti-check"></i> ¡Guardado!'; btn.classList.add("btn-success"); }
+  else { btn.innerHTML = '<i class="ti ti-device-floppy"></i> Solo en local'; }
   setTimeout(()=>{ btn.innerHTML='<i class="ti ti-plus"></i> Añadir precio'; btn.classList.remove("btn-success"); }, 1500);
   saveToFirebase();
 }
@@ -511,7 +618,7 @@ function renderHistory() {
   const d = D();
   if (!d.entries.length) { el.innerHTML='<p style="font-size:14px;color:var(--text2)">Sin entradas todavía.</p>'; return; }
   el.innerHTML = d.entries.map(e => {
-    const promo = promoLabel(e), hasDis = e.promo&&e.promo!=="none";
+    const promo = promoLabel(e), hasDis = !!promo;
     return `<div class="history-row">
       <div class="flex items-center gap8">
         <span style="font-size:18px">${getEmoji(e.product)}</span>
