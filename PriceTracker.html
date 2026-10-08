@@ -36,6 +36,7 @@
   .sync-btn:disabled { opacity:.4; cursor:not-allowed; }
   .sync-bar.blocked { background:var(--warn-bg); border-color:var(--warn-border); }
   .header { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .rev-badge { font-size:9px; font-weight:600; letter-spacing:.6px; text-transform:uppercase; padding:1px 5px; border-radius:4px; background:var(--success-bg); color:var(--success); border:1px solid var(--success-border); vertical-align:middle; margin-left:6px; opacity:.7; user-select:none; }
   .tabs { display:flex; gap:4px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto; }
   .tab { padding:6px 12px; font-size:13px; border-radius:var(--radius-sm); border:1px solid transparent; cursor:pointer; background:transparent; color:var(--text2); white-space:nowrap; display:flex; align-items:center; gap:5px; }
   .tab.active { background:var(--bg2); border-color:var(--border2); color:var(--text); font-weight:500; }
@@ -84,7 +85,7 @@
   <div class="header">
     <span style="font-size:24px">🧺</span>
     <div>
-      <div style="font-size:18px;font-weight:600">PriceTracker</div>
+      <div style="font-size:18px;font-weight:600">PriceTracker<span class="rev-badge" title="Esta versión incluye el sistema de seguridad rev / runTransaction: protege los datos contra sobrescrituras en Firebase.">rev</span></div>
       <div style="font-size:12px;color:var(--text2)" id="header-sub">Cargando...</div>
     </div>
   </div>
