@@ -232,12 +232,14 @@
     const payload = JSON.parse(JSON.stringify(window._appData));
     window.setSyncState("loading", "Guardando...");
     try {
-      // runTransaction es atómico: si el nodo cambió desde la carga (otro
-      // dispositivo), aborta en vez de sobrescribir.
+      // runTransaction es atómico. El primer callback se ejecuta contra la caché
+      // local, que puede venir vacía (null) aunque el servidor tenga datos: en ese
+      // caso NO se aborta y es el servidor quien revalida la operación. Solo se
+      // aborta cuando hay un valor real con una rev distinta a la cargada (otro
+      // dispositivo escribió por medio).
       const res = await runTransaction(dbRef, cur => {
-        const curRev = revOf(cur);
-        if (curRev !== baseRev) return undefined;          // aborta la escritura
-        return Object.assign({}, payload, { rev: curRev + 1, updatedAt: Date.now() });
+        if (cur !== null && revOf(cur) !== baseRev) return undefined;   // aborta la escritura
+        return Object.assign({}, payload, { rev: baseRev + 1, updatedAt: Date.now() });
       });
       if (!res.committed) {
         FB.state = "stale";
